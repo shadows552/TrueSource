@@ -82,6 +82,8 @@ body {
   transition: all 0.3s ease;
   box-shadow: 0 2px 6px rgba(66, 56, 38, 0.08);
   font-size: 0.9rem;
+  min-width: 140px;
+  text-align: center;
 }
 
 .network-selector label:hover {
@@ -106,6 +108,7 @@ body {
   color: white;
   box-shadow: 0 6px 20px rgba(106, 168, 79, 0.3);
   transform: translateY(-2px);
+  padding-left: 32px;
 }
 
 .network-selector label:has(input:checked)::before {
@@ -304,6 +307,101 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.product-form-with-sidebar {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 30px;
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .product-form-with-sidebar {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-sidebar {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #eee4dd;
+  position: sticky;
+  top: 20px;
+}
+
+.sidebar-title {
+  color: #423826;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #eee4dd;
+}
+
+.sidebar-transaction {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  border-left: 4px solid #6aa84f;
+  margin-bottom: 12px;
+}
+
+.sidebar-transaction:last-child {
+  margin-bottom: 0;
+}
+
+.sidebar-transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee4dd;
+}
+
+.sidebar-transaction-type {
+  color: #6aa84f;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.sidebar-transaction-time {
+  color: #423826;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.sidebar-transaction-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sidebar-transaction-details p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #423826;
+  word-break: break-word;
+}
+
+.sidebar-transaction-details strong {
+  font-weight: 600;
+}
+
+.sidebar-empty {
+  text-align: center;
+  padding: 20px;
+  color: #423826;
+  opacity: 0.6;
+  font-size: 0.9rem;
 }
 
 .form-group {

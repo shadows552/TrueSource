@@ -21,6 +21,7 @@ function ProductManager({ network = 'devnet' }) {
   const [previousOwnerFilter, setPreviousOwnerFilter] = useState('');
   const [startTimeFilter, setStartTimeFilter] = useState('');
   const [endTimeFilter, setEndTimeFilter] = useState('');
+  const [productTransactions, setProductTransactions] = useState([]);
 
   useEffect(() => {
     if (currentView === 'entries') {
@@ -62,6 +63,7 @@ function ProductManager({ network = 'devnet' }) {
     if (!id || id.trim() === '') {
       setExistingProduct(null);
       setOriginalOwner('');
+      setProductTransactions([]);
       return;
     }
 
@@ -71,14 +73,17 @@ function ProductManager({ network = 'devnet' }) {
         const firstTransaction = response.data.history[0];
         setExistingProduct(firstTransaction);
         setOriginalOwner(firstTransaction.owner || '');
+        setProductTransactions(response.data.history);
       } else {
         setExistingProduct(null);
         setOriginalOwner('');
+        setProductTransactions([]);
       }
     } catch (error) {
       // Product doesn't exist, which is fine
       setExistingProduct(null);
       setOriginalOwner('');
+      setProductTransactions([]);
     }
   };
 
@@ -104,8 +109,11 @@ function ProductManager({ network = 'devnet' }) {
       showMessage(`Product created! Transaction: ${response.data.transaction}`);
       setProductId('');
       setMetadata('');
+      setExistingProduct(null);
     } catch (error) {
-      showMessage(`Error: ${error.response?.data?.error || error.message}`, true);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error occurred';
+      const displayMsg = typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg;
+      showMessage(`Error: ${displayMsg}`, true);
     } finally {
       setLoading(false);
     }
@@ -127,7 +135,9 @@ function ProductManager({ network = 'devnet' }) {
       showMessage(`Ownership transferred! Transaction: ${response.data.transaction}`);
       setNextOwner('');
     } catch (error) {
-      showMessage(`Error: ${error.response?.data?.error || error.message}`, true);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error occurred';
+      const displayMsg = typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg;
+      showMessage(`Error: ${displayMsg}`, true);
     } finally {
       setLoading(false);
     }
@@ -149,7 +159,9 @@ function ProductManager({ network = 'devnet' }) {
       showMessage(`Repair recorded! Transaction: ${response.data.transaction}`);
       setMetadata('');
     } catch (error) {
-      showMessage(`Error: ${error.response?.data?.error || error.message}`, true);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error occurred';
+      const displayMsg = typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg;
+      showMessage(`Error: ${displayMsg}`, true);
     } finally {
       setLoading(false);
     }
@@ -162,7 +174,9 @@ function ProductManager({ network = 'devnet' }) {
       const response = await axios.get(`${API_URL}/products/${productId}/history`);
       setHistory(response.data.history);
     } catch (error) {
-      showMessage(`Error: ${error.response?.data?.error || error.message}`, true);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error occurred';
+      const displayMsg = typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg;
+      showMessage(`Error: ${displayMsg}`, true);
     } finally {
       setLoading(false);
     }
@@ -174,7 +188,9 @@ function ProductManager({ network = 'devnet' }) {
       const response = await axios.get(`${API_URL}/products/recent/transactions?limit=10`);
       setRecentTransactions(response.data.transactions);
     } catch (error) {
-      showMessage(`Error: ${error.response?.data?.error || error.message}`, true);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error occurred';
+      const displayMsg = typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg;
+      showMessage(`Error: ${displayMsg}`, true);
     } finally {
       setLoading(false);
     }
@@ -192,7 +208,9 @@ function ProductManager({ network = 'devnet' }) {
       const response = await axios.get(`${API_URL}/products/all/transactions?${params.toString()}`);
       setRecentTransactions(response.data.transactions);
     } catch (error) {
-      showMessage(`Error: ${error.response?.data?.error || error.message}`, true);
+      const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error occurred';
+      const displayMsg = typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg;
+      showMessage(`Error: ${displayMsg}`, true);
     } finally {
       setLoading(false);
     }
@@ -234,137 +252,223 @@ function ProductManager({ network = 'devnet' }) {
               onChange={(e) => setMetadata(e.target.value)}
             />
           </div>
-          <button className="submit-button" onClick={createProduct} disabled={loading || !connected}>
-            {loading ? 'Creating Product...' : 'Create Product'}
+          <button className="submit-button" onClick={createProduct} disabled={loading || !connected || existingProduct}>
+            {loading ? 'Creating Product...' : existingProduct ? 'Product Already Exists' : 'Create Product'}
           </button>
         </div>
       );
 
     case 'transfer':
       return (
-        <div className="product-form">
-          <div className="form-group">
-            <label htmlFor="productId">Product ID</label>
-            <input
-              id="productId"
-              type="text"
-              placeholder="Enter product ID to transfer"
-              value={productId}
-              onChange={(e) => handleProductIdChange(e.target.value)}
-            />
-            {existingProduct && (
-              <div className="product-exists-info">
-                  ✓ Product found! First owner: {existingProduct.owner}
+        <div className="product-form-with-sidebar">
+          <div className="form-main">
+            <div className="form-group">
+              <label htmlFor="productId">Product ID</label>
+              <input
+                id="productId"
+                type="text"
+                placeholder="Enter product ID to transfer"
+                value={productId}
+                onChange={(e) => handleProductIdChange(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="originalOwner">Original Owner (Manufacturer)</label>
+              <input
+                id="originalOwner"
+                type="text"
+                placeholder="Original owner public key"
+                value={originalOwner}
+                readOnly
+                className="readonly-field"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="nextOwner">New Owner Public Key</label>
+              <input
+                id="nextOwner"
+                type="text"
+                placeholder="Enter new owner's wallet address"
+                value={nextOwner}
+                onChange={(e) => setNextOwner(e.target.value)}
+              />
+            </div>
+            <button className="submit-button" onClick={transferProduct} disabled={loading || !connected}>
+              {loading ? 'Transferring Ownership...' : 'Transfer Ownership'}
+            </button>
+          </div>
+          <div className="form-sidebar">
+            <div className="sidebar-title">Recent Transaction</div>
+            {productTransactions.length > 0 ? (
+              <div className="sidebar-transaction">
+                <div className="sidebar-transaction-header">
+                  <span className="sidebar-transaction-type">{productTransactions[productTransactions.length - 1].type}</span>
+                  <span className="sidebar-transaction-time">
+                    {new Date(productTransactions[productTransactions.length - 1].timestamp).toLocaleString()}
+                  </span>
+                </div>
+                <div className="sidebar-transaction-details">
+                  <p><strong>Owner:</strong> {productTransactions[productTransactions.length - 1].owner}</p>
+                  {productTransactions[productTransactions.length - 1].previousOwner && (
+                    <p><strong>Previous Owner:</strong> {productTransactions[productTransactions.length - 1].previousOwner}</p>
+                  )}
+                  {productTransactions[productTransactions.length - 1].metadata && (
+                    <p><strong>Details:</strong> {productTransactions[productTransactions.length - 1].metadata}</p>
+                  )}
+                </div>
               </div>
+            ) : (
+              <div className="sidebar-empty">No transactions found for this product</div>
             )}
           </div>
-          <div className="form-group">
-            <label htmlFor="originalOwner">Original Owner (Manufacturer)</label>
-            <input
-              id="originalOwner"
-              type="text"
-              placeholder="Original owner public key"
-              value={originalOwner}
-              readOnly
-              className="readonly-field"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="nextOwner">New Owner Public Key</label>
-            <input
-              id="nextOwner"
-              type="text"
-              placeholder="Enter new owner's wallet address"
-              value={nextOwner}
-              onChange={(e) => setNextOwner(e.target.value)}
-            />
-          </div>
-          <button className="submit-button" onClick={transferProduct} disabled={loading || !connected}>
-            {loading ? 'Transferring Ownership...' : 'Transfer Ownership'}
-          </button>
         </div>
       );
 
     case 'repair':
       return (
-        <div className="product-form">
-          <div className="form-group">
-            <label htmlFor="productId">Product ID</label>
-            <input
-              id="productId"
-              type="text"
-              placeholder="Enter product ID"
-              value={productId}
-              onChange={(e) => handleProductIdChange(e.target.value)}
-            />
-            {existingProduct && (
-              <div className="product-exists-info">
-                  ✓ Product found! First owner: {existingProduct.owner}
+        <div className="product-form-with-sidebar">
+          <div className="form-main">
+            <div className="form-group">
+              <label htmlFor="productId">Product ID</label>
+              <input
+                id="productId"
+                type="text"
+                placeholder="Enter product ID"
+                value={productId}
+                onChange={(e) => handleProductIdChange(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="originalOwner">Original Owner (Manufacturer)</label>
+              <input
+                id="originalOwner"
+                type="text"
+                placeholder="Original owner public key"
+                value={originalOwner}
+                readOnly
+                className="readonly-field"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="metadata">Repair Details</label>
+              <textarea
+                id="metadata"
+                placeholder="Describe the repair work performed"
+                value={metadata}
+                onChange={(e) => setMetadata(e.target.value)}
+              />
+            </div>
+            <button className="submit-button" onClick={recordRepair} disabled={loading || !connected}>
+              {loading ? 'Recording Repair...' : 'Record Repair'}
+            </button>
+          </div>
+          <div className="form-sidebar">
+            <div className="sidebar-title">Recent Transaction</div>
+            {productTransactions.length > 0 ? (
+              <div className="sidebar-transaction">
+                <div className="sidebar-transaction-header">
+                  <span className="sidebar-transaction-type">{productTransactions[productTransactions.length - 1].type}</span>
+                  <span className="sidebar-transaction-time">
+                    {new Date(productTransactions[productTransactions.length - 1].timestamp).toLocaleString()}
+                  </span>
+                </div>
+                <div className="sidebar-transaction-details">
+                  <p><strong>Owner:</strong> {productTransactions[productTransactions.length - 1].owner}</p>
+                  {productTransactions[productTransactions.length - 1].previousOwner && (
+                    <p><strong>Previous Owner:</strong> {productTransactions[productTransactions.length - 1].previousOwner}</p>
+                  )}
+                  {productTransactions[productTransactions.length - 1].metadata && (
+                    <p><strong>Details:</strong> {productTransactions[productTransactions.length - 1].metadata}</p>
+                  )}
+                </div>
               </div>
+            ) : (
+              <div className="sidebar-empty">No transactions found for this product</div>
             )}
           </div>
-          <div className="form-group">
-            <label htmlFor="originalOwner">Original Owner (Manufacturer)</label>
-            <input
-              id="originalOwner"
-              type="text"
-              placeholder="Original owner public key"
-              value={originalOwner}
-              readOnly
-              className="readonly-field"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="metadata">Repair Details</label>
-            <textarea
-              id="metadata"
-              placeholder="Describe the repair work performed"
-              value={metadata}
-              onChange={(e) => setMetadata(e.target.value)}
-            />
-          </div>
-          <button className="submit-button" onClick={recordRepair} disabled={loading || !connected}>
-            {loading ? 'Recording Repair...' : 'Record Repair'}
-          </button>
         </div>
       );
 
     case 'check':
       return (
-        <div className="product-form">
-          <div className="form-group">
-            <label htmlFor="productId">Product ID</label>
-            <input
-              id="productId"
-              type="text"
-              placeholder="Enter product ID to check"
-              value={productId}
-              onChange={(e) => setProductId(e.target.value)}
-            />
-          </div>
-          <button className="submit-button" onClick={searchProduct} disabled={loading}>
-            {loading ? 'Checking...' : 'Check ID'}
-          </button>
-
-          {history && (
-            <div className="history">
-              <h3>Product History</h3>
-              {history.map((record, idx) => (
-                <div key={idx} className="history-record">
-                  <div className="record-header">
-                    <strong>{record.type}</strong>
-                    <span className="record-time">{new Date(record.timestamp).toLocaleString()}</span>
-                  </div>
-                  <p><strong>Owner:</strong> {record.owner}</p>
-                  {record.previousOwner && <p><strong>Previous Owner:</strong> {record.previousOwner}</p>}
-                  {record.metadata && <p><strong>Details:</strong> {record.metadata}</p>}
-                  {record.signature && (
-                    <p className="signature"><strong>Transaction:</strong> <code>{record.signature}</code></p>
-                  )}
-                </div>
-              ))}
+        <div className="product-form-with-sidebar">
+          <div className="form-main">
+            <div className="form-group">
+              <label htmlFor="productId">Product ID</label>
+              <input
+                id="productId"
+                type="text"
+                placeholder="Enter product ID to check"
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+              />
             </div>
-          )}
+            <button className="submit-button" onClick={searchProduct} disabled={loading}>
+              {loading ? 'Checking...' : 'Check ID'}
+            </button>
+
+            {history && history.length > 2 && (
+              <div className="history">
+                <h3>Transaction History</h3>
+                {history.slice(1, -1).reverse().map((record, idx) => (
+                  <div key={idx} className="history-record">
+                    <div className="record-header">
+                      <strong>{record.type}</strong>
+                      <span className="record-time">{new Date(record.timestamp).toLocaleString()}</span>
+                    </div>
+                    <p><strong>Owner:</strong> {record.owner}</p>
+                    {record.previousOwner && <p><strong>Previous Owner:</strong> {record.previousOwner}</p>}
+                    {record.metadata && <p><strong>Details:</strong> {record.metadata}</p>}
+                    {record.signature && (
+                      <p className="signature"><strong>Transaction:</strong> <code>{record.signature}</code></p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="form-sidebar">
+            <div className="sidebar-title">Key Transactions</div>
+            {history && history.length > 0 ? (
+              <>
+                <div className="sidebar-transaction">
+                  <div className="sidebar-transaction-header">
+                    <span className="sidebar-transaction-type">{history[history.length - 1].type} (Recent)</span>
+                    <span className="sidebar-transaction-time">
+                      {new Date(history[history.length - 1].timestamp).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="sidebar-transaction-details">
+                    <p><strong>Owner:</strong> {history[history.length - 1].owner}</p>
+                    {history[history.length - 1].previousOwner && (
+                      <p><strong>Previous Owner:</strong> {history[history.length - 1].previousOwner}</p>
+                    )}
+                    {history[history.length - 1].metadata && (
+                      <p><strong>Details:</strong> {history[history.length - 1].metadata}</p>
+                    )}
+                  </div>
+                </div>
+                {history.length > 1 && (
+                  <div className="sidebar-transaction">
+                    <div className="sidebar-transaction-header">
+                      <span className="sidebar-transaction-type">{history[0].type} (First)</span>
+                      <span className="sidebar-transaction-time">
+                        {new Date(history[0].timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="sidebar-transaction-details">
+                      <p><strong>Owner:</strong> {history[0].owner}</p>
+                      {history[0].metadata && (
+                        <p><strong>Details:</strong> {history[0].metadata}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="sidebar-empty">Search for a product to see its transactions</div>
+            )}
+          </div>
         </div>
       );
 
