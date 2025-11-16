@@ -1,7 +1,9 @@
 FROM owasp/modsecurity-crs:nginx-alpine
 
 # Remove default templates to prevent entrypoint from overwriting our custom configs
+USER root
 RUN rm -rf /etc/nginx/templates/*
+USER nginx
 
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
