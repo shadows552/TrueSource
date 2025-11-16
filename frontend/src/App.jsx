@@ -13,24 +13,24 @@ function HeaderContent({ useValidator, setUseValidator }) {
 
   return (
     <header className="App-header">
-      <div className="header-title">
-        <h1><span className="true-text">True</span>Source</h1>
-        <p>Track a Product's Life Story</p>
+      <div className="header-left">
+        <div className="header-title">
+          <h1><span className="true-text">True</span>Source</h1>
+          <p>Track a Product's Life Story</p>
+        </div>
+
+        {/* Public Key Display */}
+        {connected && publicKey && (
+          <div className="user-pubkey-wide" onClick={() => navigator.clipboard.writeText(publicKey.toString())}>
+            <span className="pubkey-label">Your Public Key:</span>
+            <span className="pubkey-value">{publicKey.toString()}</span>
+          </div>
+        )}
       </div>
 
       <div className="header-controls">
         {/* Network Selection */}
         <div className="network-selector">
-          <label>
-            <input
-              type="radio"
-              name="network"
-              value="devnet"
-              checked={!useValidator}
-              onChange={() => setUseValidator(false)}
-            />
-            <span>Devnet</span>
-          </label>
           <label>
             <input
               type="radio"
@@ -41,20 +41,22 @@ function HeaderContent({ useValidator, setUseValidator }) {
             />
             <span>Local Validator</span>
           </label>
+          <label>
+            <input
+              type="radio"
+              name="network"
+              value="devnet"
+              checked={!useValidator}
+              onChange={() => setUseValidator(false)}
+            />
+            <span>Devnet</span>
+          </label>
         </div>
 
         {/* Wallet Button */}
         <div className="wallet-button-container">
           <WalletMultiButton />
         </div>
-
-        {/* Public Key Display */}
-        {connected && publicKey && (
-          <div className="user-pubkey">
-            <span className="pubkey-label">Your Public Key:</span>
-            <span className="pubkey-value">{publicKey.toString()}</span>
-          </div>
-        )}
       </div>
     </header>
   );
