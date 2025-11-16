@@ -169,7 +169,6 @@ services:
     cap_add:
       - IPC_LOCK
     volumes:
-      - ./vault/config:/vault/config:ro
       - ./vault/policies:/vault/policies:ro
       - ./vault/scripts:/vault/scripts:ro
       - vault-data:/vault/file
