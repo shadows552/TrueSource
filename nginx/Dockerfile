@@ -14,6 +14,10 @@ COPY modsecurity.conf /etc/modsecurity.d/modsecurity.conf
 # Copy scanner user agents data (if referenced in modsecurity.conf)
 COPY scanner-user-agents.data /etc/modsecurity.d/scanner-user-agents.data
 
+# Fix permissions for nginx user to access modsecurity.d directory
+RUN chown -R nginx:nginx /etc/modsecurity.d && \
+    chmod -R 755 /etc/modsecurity.d
+
 # Expose ports
 EXPOSE 80 443
 
