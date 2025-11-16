@@ -1,0 +1,24 @@
+# Trivy Ignore File
+# This file contains CVEs that have been reviewed and accepted as risk exceptions
+# Format: CVE-YYYY-NNNNN [optional comment]
+#
+# Guidelines for adding CVEs:
+# 1. Document the reason for ignoring
+# 2. Add a reference link to the issue/discussion
+# 3. Set a review date for re-evaluation
+# 4. Get security team approval (in production)
+#
+# Example:
+# CVE-2024-12345 # False positive - not applicable to our use case
+# CVE-2024-67890 # Fix not available, mitigated by network isolation
+
+# Add specific CVEs below this line after review and approval
+# ---------------------------------------------------------------
+
+# Node.js base image CVEs (if any are unavoidable)
+# Review date: 2025-12-01
+
+# Alpine Linux CVEs (if any are unavoidable)
+# Review date: 2025-12-01
+
+# Note: This file should be kept minimal. Most vulnerabilities should be fixed, not ignored.

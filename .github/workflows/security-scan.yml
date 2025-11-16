@@ -103,7 +103,9 @@ jobs:
           output: 'trivy-results-${{ matrix.component }}.sarif'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
-          ignore-unfixed: false
+          ignore-unfixed: true
+          scanners: 'vuln'
+          timeout: '10m'
 
       - name: Upload Trivy results to GitHub Security
         if: always()

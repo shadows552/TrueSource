@@ -144,10 +144,17 @@ services:
     privileged: true
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
+      - /sys/kernel/debug:/sys/kernel/debug:ro
+      - /proc:/host/proc:ro
       - ./falco/falco.yaml:/etc/falco/falco.yaml:ro
       - ./falco/rules:/etc/falco/rules.d:ro
     environment:
-      - FALCO_BPF_PROBE=""
+      - HOST_ROOT=/host
+      - FALCOCTL_DRIVER_TYPE=modern_ebpf
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RESOURCE
+      - SYS_PTRACE
     networks:
       - bbf-network
     logging:

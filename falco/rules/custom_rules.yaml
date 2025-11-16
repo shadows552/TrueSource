@@ -86,13 +86,13 @@
 - rule: Write to System Directories
   desc: Detect writes to system directories
   condition: >
-    open_write and
+    (evt.type in (open, openat, openat2) and evt.is_open_write=true) and
     container and
     container.name in (bbf-backend, bbf-frontend) and
-    fd.name startswith /bin or
+    (fd.name startswith /bin or
     fd.name startswith /sbin or
     fd.name startswith /usr/bin or
-    fd.name startswith /usr/sbin
+    fd.name startswith /usr/sbin)
   output: >
     Write to system directory detected
     (user=%user.name file=%fd.name command=%proc.cmdline

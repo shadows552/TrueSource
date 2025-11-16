@@ -1,19 +1,19 @@
 # Frontend Dockerfile - Multi-stage build with Alpine Linux
-FROM node:20-alpine AS builder
+FROM node:20-alpine3.20 AS builder
 
 WORKDIR /app
 
-# Upgrade all packages to latest security patches
-RUN apk update && apk upgrade --no-cache
-
-# Install dependencies
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    libusb-dev \
-    linux-headers \
-    eudev-dev
+# Upgrade all packages to latest security patches and install build dependencies
+RUN apk update && \
+    apk upgrade --no-cache && \
+    apk add --no-cache \
+        python3 \
+        make \
+        g++ \
+        libusb-dev \
+        linux-headers \
+        eudev-dev && \
+    rm -rf /var/cache/apk/*
 COPY package*.json ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
@@ -22,10 +22,12 @@ COPY . .
 RUN npm run build
 
 # Production stage - Nginx Alpine for serving static files
-FROM nginx:alpine
+FROM nginx:alpine3.20
 
-# Upgrade all packages to latest security patches
-RUN apk update && apk upgrade --no-cache
+# Upgrade all packages to latest security patches and remove apk cache
+RUN apk update && \
+    apk upgrade --no-cache && \
+    rm -rf /var/cache/apk/*
 
 # Add security: Remove default nginx user and add custom user
 RUN addgroup -g 1001 -S frontend && \
