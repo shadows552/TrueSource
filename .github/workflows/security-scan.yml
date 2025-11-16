@@ -95,8 +95,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+      - name: Aqua Security Trivy
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           image-ref: bbf-${{ matrix.component }}:latest
           format: 'sarif'
