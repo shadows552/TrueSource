@@ -99,6 +99,7 @@ function ProductManager({ network = 'devnet' }) {
     }
 
     setLoading(true);
+    const currentProductId = productId;
     try {
       const response = await axios.post(`${API_URL}/products`, {
         productId,
@@ -110,6 +111,8 @@ function ProductManager({ network = 'devnet' }) {
       setProductId('');
       setMetadata('');
       setExistingProduct(null);
+      // Auto-refresh the product transactions
+      await searchExistingProduct(currentProductId);
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error occurred';
       const displayMsg = typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg;
@@ -134,6 +137,8 @@ function ProductManager({ network = 'devnet' }) {
 
       showMessage(`Ownership transferred! Transaction: ${response.data.transaction}`);
       setNextOwner('');
+      // Auto-refresh the product transactions
+      await searchExistingProduct(productId);
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error occurred';
       const displayMsg = typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg;
@@ -158,6 +163,8 @@ function ProductManager({ network = 'devnet' }) {
 
       showMessage(`Repair recorded! Transaction: ${response.data.transaction}`);
       setMetadata('');
+      // Auto-refresh the product transactions
+      await searchExistingProduct(productId);
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error occurred';
       const displayMsg = typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg;
@@ -280,7 +287,9 @@ function ProductManager({ network = 'devnet' }) {
                 placeholder="Original owner public key"
                 value={originalOwner}
                 readOnly
-                className="readonly-field"
+                className="readonly-field clickable-field"
+                onClick={() => originalOwner && navigator.clipboard.writeText(originalOwner)}
+                title="Click to copy"
               />
             </div>
             <div className="form-group">
@@ -346,7 +355,9 @@ function ProductManager({ network = 'devnet' }) {
                 placeholder="Original owner public key"
                 value={originalOwner}
                 readOnly
-                className="readonly-field"
+                className="readonly-field clickable-field"
+                onClick={() => originalOwner && navigator.clipboard.writeText(originalOwner)}
+                title="Click to copy"
               />
             </div>
             <div className="form-group">
@@ -407,10 +418,10 @@ function ProductManager({ network = 'devnet' }) {
               {loading ? 'Checking...' : 'Check ID'}
             </button>
 
-            {history && history.length > 2 && (
+            {history && history.length > 0 && (
               <div className="history">
                 <h3>Transaction History</h3>
-                {history.slice(1, -1).reverse().map((record, idx) => (
+                {history.slice().reverse().map((record, idx) => (
                   <div key={idx} className="history-record">
                     <div className="record-header">
                       <strong>{record.type}</strong>
