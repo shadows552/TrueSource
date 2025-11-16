@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -29,6 +28,30 @@ function ProductManager({ network = 'devnet' }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentView]);
+
+  // Auto-populate original owner after 1 second of no typing
+  useEffect(() => {
+    if (productId.trim() === '') {
+      setOriginalOwner('');
+      setExistingProduct(null);
+      return;
+    }
+
+    // For transfer and repair views, use 1-second debounce
+    if (currentView === 'transfer' || currentView === 'repair') {
+      const timer = setTimeout(() => {
+        searchExistingProduct(productId);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+
+    // For create view, search immediately to show warning
+    if (currentView === 'create') {
+      searchExistingProduct(productId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId, currentView]);
 
   const showMessage = (msg, isError = false) => {
     setMessage({ text: msg, error: isError });
@@ -61,10 +84,7 @@ function ProductManager({ network = 'devnet' }) {
 
   const handleProductIdChange = (id) => {
     setProductId(id);
-    // Auto-search for existing product
-    if (currentView !== 'search') {
-      searchExistingProduct(id);
-    }
+    // Auto-search is now handled by useEffect with debounce
   };
 
   const createProduct = async () => {
@@ -187,276 +207,266 @@ function ProductManager({ network = 'devnet' }) {
 
   const renderForm = () => {
     switch (currentView) {
-      case 'create':
-        return (
-          <div className="product-form">
-            <div className="form-group">
-              <label htmlFor="productId">Product ID</label>
-              <input
-                id="productId"
-                type="text"
-                placeholder="Enter product ID"
-                value={productId}
-                onChange={(e) => handleProductIdChange(e.target.value)}
-              />
-              {existingProduct && (
-                <div className="product-exists-warning">
+    case 'create':
+      return (
+        <div className="product-form">
+          <div className="form-group">
+            <label htmlFor="productId">Product ID</label>
+            <input
+              id="productId"
+              type="text"
+              placeholder="Enter product ID"
+              value={productId}
+              onChange={(e) => handleProductIdChange(e.target.value)}
+            />
+            {existingProduct && (
+              <div className="product-exists-warning">
                   ⚠️ Product already exists! First owner: {existingProduct.owner}
-                </div>
-              )}
-            </div>
-            <div className="form-group">
-              <label htmlFor="metadata">Metadata (Optional)</label>
-              <textarea
-                id="metadata"
-                placeholder="Product description, specifications, etc."
-                value={metadata}
-                onChange={(e) => setMetadata(e.target.value)}
-              />
-            </div>
-            <button className="submit-button" onClick={createProduct} disabled={loading || !connected}>
-              {loading ? 'Creating Product...' : 'Create Product'}
-            </button>
+              </div>
+            )}
           </div>
-        );
+          <div className="form-group">
+            <label htmlFor="metadata">Metadata (Optional)</label>
+            <textarea
+              id="metadata"
+              placeholder="Product description, specifications, etc."
+              value={metadata}
+              onChange={(e) => setMetadata(e.target.value)}
+            />
+          </div>
+          <button className="submit-button" onClick={createProduct} disabled={loading || !connected}>
+            {loading ? 'Creating Product...' : 'Create Product'}
+          </button>
+        </div>
+      );
 
-      case 'transfer':
-        return (
-          <div className="product-form">
-            <div className="form-group">
-              <label htmlFor="productId">Product ID</label>
-              <input
-                id="productId"
-                type="text"
-                placeholder="Enter product ID to transfer"
-                value={productId}
-                onChange={(e) => handleProductIdChange(e.target.value)}
-              />
-              {existingProduct && (
-                <div className="product-exists-info">
+    case 'transfer':
+      return (
+        <div className="product-form">
+          <div className="form-group">
+            <label htmlFor="productId">Product ID</label>
+            <input
+              id="productId"
+              type="text"
+              placeholder="Enter product ID to transfer"
+              value={productId}
+              onChange={(e) => handleProductIdChange(e.target.value)}
+            />
+            {existingProduct && (
+              <div className="product-exists-info">
                   ✓ Product found! First owner: {existingProduct.owner}
-                </div>
-              )}
-            </div>
-            <div className="form-group">
-              <label htmlFor="originalOwner">Original Owner (Manufacturer)</label>
-              <input
-                id="originalOwner"
-                type="text"
-                placeholder="Original owner public key"
-                value={originalOwner}
-                readOnly
-                className="readonly-field"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="nextOwner">New Owner Public Key</label>
-              <input
-                id="nextOwner"
-                type="text"
-                placeholder="Enter new owner's wallet address"
-                value={nextOwner}
-                onChange={(e) => setNextOwner(e.target.value)}
-              />
-            </div>
-            <button className="submit-button" onClick={transferProduct} disabled={loading || !connected}>
-              {loading ? 'Transferring Ownership...' : 'Transfer Ownership'}
-            </button>
+              </div>
+            )}
           </div>
-        );
+          <div className="form-group">
+            <label htmlFor="originalOwner">Original Owner (Manufacturer)</label>
+            <input
+              id="originalOwner"
+              type="text"
+              placeholder="Original owner public key"
+              value={originalOwner}
+              readOnly
+              className="readonly-field"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="nextOwner">New Owner Public Key</label>
+            <input
+              id="nextOwner"
+              type="text"
+              placeholder="Enter new owner's wallet address"
+              value={nextOwner}
+              onChange={(e) => setNextOwner(e.target.value)}
+            />
+          </div>
+          <button className="submit-button" onClick={transferProduct} disabled={loading || !connected}>
+            {loading ? 'Transferring Ownership...' : 'Transfer Ownership'}
+          </button>
+        </div>
+      );
 
-      case 'repair':
-        return (
-          <div className="product-form">
-            <div className="form-group">
-              <label htmlFor="productId">Product ID</label>
-              <input
-                id="productId"
-                type="text"
-                placeholder="Enter product ID"
-                value={productId}
-                onChange={(e) => handleProductIdChange(e.target.value)}
-              />
-              {existingProduct && (
-                <div className="product-exists-info">
+    case 'repair':
+      return (
+        <div className="product-form">
+          <div className="form-group">
+            <label htmlFor="productId">Product ID</label>
+            <input
+              id="productId"
+              type="text"
+              placeholder="Enter product ID"
+              value={productId}
+              onChange={(e) => handleProductIdChange(e.target.value)}
+            />
+            {existingProduct && (
+              <div className="product-exists-info">
                   ✓ Product found! First owner: {existingProduct.owner}
-                </div>
-              )}
-            </div>
-            <div className="form-group">
-              <label htmlFor="originalOwner">Original Owner (Manufacturer)</label>
-              <input
-                id="originalOwner"
-                type="text"
-                placeholder="Original owner public key"
-                value={originalOwner}
-                readOnly
-                className="readonly-field"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="metadata">Repair Details</label>
-              <textarea
-                id="metadata"
-                placeholder="Describe the repair work performed"
-                value={metadata}
-                onChange={(e) => setMetadata(e.target.value)}
-              />
-            </div>
-            <button className="submit-button" onClick={recordRepair} disabled={loading || !connected}>
-              {loading ? 'Recording Repair...' : 'Record Repair'}
-            </button>
+              </div>
+            )}
           </div>
-        );
+          <div className="form-group">
+            <label htmlFor="originalOwner">Original Owner (Manufacturer)</label>
+            <input
+              id="originalOwner"
+              type="text"
+              placeholder="Original owner public key"
+              value={originalOwner}
+              readOnly
+              className="readonly-field"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="metadata">Repair Details</label>
+            <textarea
+              id="metadata"
+              placeholder="Describe the repair work performed"
+              value={metadata}
+              onChange={(e) => setMetadata(e.target.value)}
+            />
+          </div>
+          <button className="submit-button" onClick={recordRepair} disabled={loading || !connected}>
+            {loading ? 'Recording Repair...' : 'Record Repair'}
+          </button>
+        </div>
+      );
 
-      case 'check':
-        return (
-          <div className="product-form">
-            <div className="form-group">
-              <label htmlFor="productId">Product ID</label>
+    case 'check':
+      return (
+        <div className="product-form">
+          <div className="form-group">
+            <label htmlFor="productId">Product ID</label>
+            <input
+              id="productId"
+              type="text"
+              placeholder="Enter product ID to check"
+              value={productId}
+              onChange={(e) => setProductId(e.target.value)}
+            />
+          </div>
+          <button className="submit-button" onClick={searchProduct} disabled={loading}>
+            {loading ? 'Checking...' : 'Check ID'}
+          </button>
+
+          {history && (
+            <div className="history">
+              <h3>Product History</h3>
+              {history.map((record, idx) => (
+                <div key={idx} className="history-record">
+                  <div className="record-header">
+                    <strong>{record.type}</strong>
+                    <span className="record-time">{new Date(record.timestamp).toLocaleString()}</span>
+                  </div>
+                  <p><strong>Owner:</strong> {record.owner}</p>
+                  {record.previousOwner && <p><strong>Previous Owner:</strong> {record.previousOwner}</p>}
+                  {record.metadata && <p><strong>Details:</strong> {record.metadata}</p>}
+                  {record.signature && (
+                    <p className="signature"><strong>Transaction:</strong> <code>{record.signature}</code></p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+
+    case 'entries':
+      return (
+        <div className="product-form">
+          <div className="entries-header">
+            <h3>All Entries</h3>
+            <div className="filter-controls">
+              <button className="search-button" onClick={fetchAllTransactions} disabled={loading}>
+                {loading ? 'Searching...' : '🔍 Search'}
+              </button>
+              <button className="clear-button" onClick={() => { clearFilters(); fetchAllTransactions(); }} disabled={loading}>
+                  Clear Filters
+              </button>
+            </div>
+          </div>
+
+          <div className="filters-section">
+            <div className="form-group filter-group">
+              <label htmlFor="ownerFilter">Owner (Public Key)</label>
               <input
-                id="productId"
+                id="ownerFilter"
                 type="text"
-                placeholder="Enter product ID to check"
-                value={productId}
-                onChange={(e) => setProductId(e.target.value)}
+                placeholder="Filter by owner address"
+                value={ownerFilter}
+                onChange={(e) => setOwnerFilter(e.target.value)}
               />
             </div>
-            <button className="submit-button" onClick={searchProduct} disabled={loading}>
-              {loading ? 'Checking...' : 'Check ID'}
-            </button>
 
-            {history && (
-              <div className="history">
-                <h3>Product History</h3>
-                {history.map((record, idx) => (
-                  <div key={idx} className="history-record">
-                    <div className="record-header">
-                      <strong>{record.type}</strong>
-                      <span className="record-time">{new Date(record.timestamp).toLocaleString()}</span>
-                    </div>
+            <div className="form-group filter-group">
+              <label htmlFor="previousOwnerFilter">Previous Owner (Public Key)</label>
+              <input
+                id="previousOwnerFilter"
+                type="text"
+                placeholder="Filter by previous owner address"
+                value={previousOwnerFilter}
+                onChange={(e) => setPreviousOwnerFilter(e.target.value)}
+              />
+            </div>
+
+            <div className="time-filters">
+              <div className="form-group filter-group">
+                <label htmlFor="startTimeFilter">Start Time</label>
+                <input
+                  id="startTimeFilter"
+                  type="datetime-local"
+                  value={startTimeFilter}
+                  onChange={(e) => setStartTimeFilter(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group filter-group">
+                <label htmlFor="endTimeFilter">End Time</label>
+                <input
+                  id="endTimeFilter"
+                  type="datetime-local"
+                  value={endTimeFilter}
+                  onChange={(e) => setEndTimeFilter(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {recentTransactions.length > 0 ? (
+            <div className="entries-list">
+              <p className="results-count">Found {recentTransactions.length} entries</p>
+              {recentTransactions.map((record, idx) => (
+                <div key={idx} className="transaction-card">
+                  <div className="transaction-header">
+                    <span className="transaction-type">{record.type}</span>
+                    <span className="transaction-time">
+                      {new Date(record.timestamp).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="transaction-details">
+                    <p><strong>Product ID:</strong> {record.productId}</p>
                     <p><strong>Owner:</strong> {record.owner}</p>
-                    {record.previousOwner && <p><strong>Previous Owner:</strong> {record.previousOwner}</p>}
                     {record.metadata && <p><strong>Details:</strong> {record.metadata}</p>}
+                    {record.previousOwner && <p><strong>Previous Owner:</strong> {record.previousOwner}</p>}
                     {record.signature && (
                       <p className="signature"><strong>Transaction:</strong> <code>{record.signature}</code></p>
                     )}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-
-      case 'entries':
-        return (
-          <div className="product-form">
-            <div className="entries-header">
-              <h3>All Entries</h3>
-              <div className="filter-controls">
-                <button className="search-button" onClick={fetchAllTransactions} disabled={loading}>
-                  {loading ? 'Searching...' : '🔍 Search'}
-                </button>
-                <button className="clear-button" onClick={() => { clearFilters(); fetchAllTransactions(); }} disabled={loading}>
-                  Clear Filters
-                </button>
-              </div>
-            </div>
-
-            <div className="filters-section">
-              <div className="form-group filter-group">
-                <label htmlFor="ownerFilter">Owner (Public Key)</label>
-                <input
-                  id="ownerFilter"
-                  type="text"
-                  placeholder="Filter by owner address"
-                  value={ownerFilter}
-                  onChange={(e) => setOwnerFilter(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group filter-group">
-                <label htmlFor="previousOwnerFilter">Previous Owner (Public Key)</label>
-                <input
-                  id="previousOwnerFilter"
-                  type="text"
-                  placeholder="Filter by previous owner address"
-                  value={previousOwnerFilter}
-                  onChange={(e) => setPreviousOwnerFilter(e.target.value)}
-                />
-              </div>
-
-              <div className="time-filters">
-                <div className="form-group filter-group">
-                  <label htmlFor="startTimeFilter">Start Time</label>
-                  <input
-                    id="startTimeFilter"
-                    type="datetime-local"
-                    value={startTimeFilter}
-                    onChange={(e) => setStartTimeFilter(e.target.value)}
-                  />
                 </div>
-
-                <div className="form-group filter-group">
-                  <label htmlFor="endTimeFilter">End Time</label>
-                  <input
-                    id="endTimeFilter"
-                    type="datetime-local"
-                    value={endTimeFilter}
-                    onChange={(e) => setEndTimeFilter(e.target.value)}
-                  />
-                </div>
-              </div>
+              ))}
             </div>
+          ) : (
+            <div className="no-transactions">
+              <p>No entries found. {ownerFilter || previousOwnerFilter || startTimeFilter || endTimeFilter ? 'Try adjusting your filters.' : 'Create a product to get started!'}</p>
+            </div>
+          )}
+        </div>
+      );
 
-            {recentTransactions.length > 0 ? (
-              <div className="entries-list">
-                <p className="results-count">Found {recentTransactions.length} entries</p>
-                {recentTransactions.map((record, idx) => (
-                  <div key={idx} className="transaction-card">
-                    <div className="transaction-header">
-                      <span className="transaction-type">{record.type}</span>
-                      <span className="transaction-time">
-                        {new Date(record.timestamp).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="transaction-details">
-                      <p><strong>Product ID:</strong> {record.productId}</p>
-                      <p><strong>Owner:</strong> {record.owner}</p>
-                      {record.metadata && <p><strong>Details:</strong> {record.metadata}</p>}
-                      {record.previousOwner && <p><strong>Previous Owner:</strong> {record.previousOwner}</p>}
-                      {record.signature && (
-                        <p className="signature"><strong>Transaction:</strong> <code>{record.signature}</code></p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="no-transactions">
-                <p>No entries found. {ownerFilter || previousOwnerFilter || startTimeFilter || endTimeFilter ? 'Try adjusting your filters.' : 'Create a product to get started!'}</p>
-              </div>
-            )}
-          </div>
-        );
-
-      default:
-        return null;
+    default:
+      return null;
     }
   };
 
   return (
     <div className="product-manager">
-      <div className="wallet-section">
-        <WalletMultiButton />
-        {connected && publicKey && (
-          <div className="user-pubkey">
-            <span className="pubkey-label">Your Public Key:</span>
-            <span className="pubkey-value">{publicKey.toString()}</span>
-          </div>
-        )}
-      </div>
-
       {message && (
         <div className={`message ${message.error ? 'error' : 'success'}`}>
           {message.text}

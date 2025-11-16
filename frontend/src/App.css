@@ -15,37 +15,57 @@ body {
 }
 
 .App-header {
-  text-align: center;
   color: #423826;
   margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 15px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(66, 56, 38, 0.1);
 }
 
-.App-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
+.header-title {
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.header-title h1 {
+  font-size: 2rem;
+  margin-bottom: 5px;
   font-weight: 700;
   color: #423826;
 }
 
-.App-header h1 .true-text {
+.header-title h1 .true-text {
   color: #6aa84f;
 }
 
-.App-header p {
-  font-size: 1.2rem;
+.header-title p {
+  font-size: 0.95rem;
   font-weight: 400;
   color: #423826;
   opacity: 0.8;
+  margin: 0;
 }
 
-/* Fancy Network Selector */
-.network-selector {
+.header-controls {
   display: flex;
-  justify-content: center;
   align-items: center;
   gap: 15px;
-  margin-top: 30px;
   flex-wrap: wrap;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* Network Selector - Compact Version */
+.network-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .network-selector label {
@@ -53,15 +73,15 @@ body {
   display: inline-block;
   cursor: pointer;
   user-select: none;
-  padding: 12px 28px;
-  background: white;
-  border: 3px solid #eee4dd;
+  padding: 8px 20px;
+  background: #f9fafb;
+  border: 2px solid #eee4dd;
   border-radius: 50px;
   font-weight: 500;
   color: #423826;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(66, 56, 38, 0.1);
-  font-size: 1rem;
+  box-shadow: 0 2px 6px rgba(66, 56, 38, 0.08);
+  font-size: 0.9rem;
 }
 
 .network-selector label:hover {
@@ -122,36 +142,40 @@ body {
   margin: 0 auto;
 }
 
-.wallet-section {
-  text-align: center;
-  margin-bottom: 20px;
+.wallet-button-container {
+  flex-shrink: 0;
 }
 
 .user-pubkey {
-  margin-top: 15px;
-  background: white;
-  padding: 12px 20px;
+  background: #f9fafb;
+  padding: 8px 16px;
   border-radius: 25px;
   border: 2px solid #eee4dd;
-  display: inline-block;
-  max-width: 90%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 400px;
   overflow: hidden;
-  text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .pubkey-label {
   color: #423826;
-  font-weight: 700;
-  margin-right: 10px;
-  font-size: 0.95rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .pubkey-value {
   color: #6aa84f;
   font-family: 'Roboto Mono', monospace;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .connection-info {
