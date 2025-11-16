@@ -46,3 +46,4 @@ grafana-data/
 
 # Temporary files
 /tmp/
+solana-program/Cargo.lock
