@@ -14,7 +14,8 @@
 
 # Add specific CVEs below this line after review and approval
 # ---------------------------------------------------------------
-
+CVE-2024-21538
+# CVE-2024-21538
 # Node.js base image CVEs (if any are unavoidable)
 # Review date: 2025-12-01
 
@@ -22,4 +23,3 @@
 # Review date: 2025-12-01
 
 # Note: This file should be kept minimal. Most vulnerabilities should be fixed, not ignored.
-CVE-2024-21538 cross-spawn dumbness
