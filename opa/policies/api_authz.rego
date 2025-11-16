@@ -54,7 +54,10 @@ valid_endpoint if {
 
 # Allowed GET paths
 allowed_get_path if {
-    input.path == ["api", "products", _, "history"]
+    count(input.path) == 4
+    input.path[0] == "api"
+    input.path[1] == "products"
+    input.path[3] == "history"
 }
 
 allowed_get_path if {
@@ -67,11 +70,17 @@ allowed_post_path if {
 }
 
 allowed_post_path if {
-    input.path == ["api", "products", _, "transfer"]
+    count(input.path) == 4
+    input.path[0] == "api"
+    input.path[1] == "products"
+    input.path[3] == "transfer"
 }
 
 allowed_post_path if {
-    input.path == ["api", "products", _, "repair"]
+    count(input.path) == 4
+    input.path[0] == "api"
+    input.path[1] == "products"
+    input.path[3] == "repair"
 }
 
 # Policy violation reasons
