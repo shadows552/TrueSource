@@ -1,6 +1,7 @@
 # Blockchain-Based Product Provenance (BBF)
 
-A production-grade, secure cloud-native dApp for tracking product lifecycle on Solana blockchain with enterprise-level security monitoring.
+A production-grade, secure cloud-native dApp for tracking product lifecycle on Solana blockchain with security monitoring.
+Similar to CarFax but for consumer electronics, bikes, and high-value goods.
 
 ## Quick Start
 
@@ -15,34 +16,6 @@ docker-compose up -d
 ```
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed setup instructions.
-
-## Architecture
-
-```
-                    ┌──────────────────────────┐
-                    │  NGINX + ModSecurity WAF │
-                    │    (Entry Point)         │
-                    └────────────┬─────────────┘
-                                 │
-                    ┌────────────┴────────────┐
-                    │                         │
-            ┌───────▼──────┐         ┌───────▼──────┐
-            │   Frontend   │         │   Backend    │
-            │  React+Vite  │         │  Node.js     │
-            │  Wallet UI   │         │  REST API    │
-            └──────────────┘         └──────┬───────┘
-                                            │
-                                    ┌───────▼───────┐
-                                    │ Solana Program│
-                                    │  (On-chain)   │
-                                    └───────────────┘
-
-    Security & Observability Stack:
-    ┌─────────┐  ┌────────┐  ┌─────────┐  ┌─────────┐
-    │  Falco  │  │  Loki  │  │Grafana  │  │   OPA   │
-    │ Runtime │  │  Logs  │  │Dashboard│  │ Policy  │
-    └─────────┘  └────────┘  └─────────┘  └─────────┘
-```
 
 ## Components
 
@@ -80,8 +53,6 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed setup instructions.
 - **Security headers** (CSP, HSTS, X-Frame-Options, etc.)
 - **Environment-based secrets** management
 
-Similar to CarFax but for consumer electronics, bikes, and high-value goods.
-
 View live security events in Grafana: http://localhost:3001/d/bbf-security
 
 ## Documentation
@@ -90,13 +61,3 @@ View live security events in Grafana: http://localhost:3001/d/bbf-security
 - [Solana Program](./solana-program/README.md) - On-chain program details
 - [Backend API](./backend/README.md) - REST API documentation
 - [Frontend](./frontend/README.md) - Web UI setup
-
-## Tech Stack
-
-**Blockchain**: Solana (Devnet)
-**Backend**: Node.js, Express, Pino
-**Frontend**: React, Vite, Solana Wallet Adapter
-**Security**: Falco, ModSecurity, OPA
-**Observability**: Loki, Promtail, Grafana
-**Infrastructure**: Docker Compose, NGINX
-**CI/CD**: GitHub Actions, Trivy, Cosign
