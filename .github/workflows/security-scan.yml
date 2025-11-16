@@ -66,7 +66,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
         id: build
@@ -102,7 +102,7 @@ jobs:
 
       - name: Upload Trivy results to GitHub Security
         if: steps.build.outcome == 'success'
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results-${{ matrix.component }}.sarif'
         continue-on-error: true
