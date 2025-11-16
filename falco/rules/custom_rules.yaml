@@ -37,10 +37,7 @@
     container.name in (bbf-backend, bbf-frontend) and
     not fd.sport in (80, 443, 3000, 3100, 8080, 8181, 9080) and
     not fd.dport in (80, 443, 3000, 3100, 8080, 8181, 9080)
-  output: >
-    Suspicious network connection detected
-    (user=%user.name connection=%fd.name sport=%fd.sport dport=%fd.dport
-    container=%container.name)
+  output: "Suspicious network connection detected (user=%user.name connection=%fd.name sport=%fd.sport dport=%fd.dport container=%container.name)"
   priority: WARNING
   tags: [network, container, bbf]
 

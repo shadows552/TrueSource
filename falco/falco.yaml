@@ -43,10 +43,6 @@ syscall_event_drops:
 file_output:
   enabled: false
 
-# Program output
-program_output:
-  enabled: false
-
 # HTTP output
 http_output:
   enabled: false
