@@ -111,8 +111,7 @@ function ProductManager({ network = 'devnet' }) {
       setProductId('');
       setMetadata('');
       setExistingProduct(null);
-      // Auto-refresh the product transactions
-      await searchExistingProduct(currentProductId);
+      // Don't auto-refresh after creation to avoid "already exists" warning
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || error.message || 'Unknown error occurred';
       const displayMsg = typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg;

@@ -4,10 +4,15 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const logger = require('./logger');
 const productRoutes = require('./routes/products');
+const authRoutes = require('./routes/auth');
+const { loadConfig, healthCheck: vaultHealthCheck } = require('./vault');
+const { initializeAuth } = require('./middleware/auth');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+// Global configuration object (will be loaded from Vault)
+let config = null;
 
 // Security middleware
 app.use(helmet({
@@ -52,12 +57,21 @@ app.use((req, res, next) => {
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
   logger.info({ type: 'health_check', status: 'healthy' });
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+
+  const vaultStatus = await vaultHealthCheck();
+
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    vault: vaultStatus,
+    config: config ? 'loaded' : 'not_loaded'
+  });
 });
 
 // API routes
+app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 
 // Error handling middleware
@@ -88,14 +102,39 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  logger.info({
-    type: 'server_start',
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development',
-    solanaNetwork: process.env.SOLANA_NETWORK || 'devnet'
-  });
-});
+// Async server startup with Vault configuration loading
+async function startServer() {
+  try {
+    // Load configuration from Vault
+    logger.info({ type: 'loading_config', source: 'vault' });
+    config = await loadConfig();
+
+    // Initialize authentication with JWT secret
+    initializeAuth(config);
+
+    // Start server
+    const PORT = config.port;
+    app.listen(PORT, () => {
+      logger.info({
+        type: 'server_start',
+        port: PORT,
+        environment: config.nodeEnv,
+        solanaNetwork: config.solanaNetwork,
+        jwtEnabled: !!config.jwtSecret,
+        vaultIntegration: true
+      });
+    });
+  } catch (error) {
+    logger.error({
+      type: 'server_start_error',
+      error: error.message,
+      stack: error.stack
+    });
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 
 module.exports = app;

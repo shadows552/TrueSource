@@ -15,8 +15,13 @@ services:
       - SOLANA_RPC_URL=https://api.devnet.solana.com
       - ALLOWED_ORIGINS=http://localhost:8080
       - LOKI_URL=http://loki:3100
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_TOKEN=dev-root-token
     depends_on:
-      - loki
+      vault:
+        condition: service_healthy
+      loki:
+        condition: service_started
     networks:
       - bbf-network
     logging:
@@ -35,7 +40,8 @@ services:
       - "8080:8080"
     environment:
       - VITE_API_URL=http://localhost:3000/api
-      - VITE_SOLANA_NETWORK=devnet
+      - VITE_SOLANA_NETWORK=validator
+      - VITE_SOLANA_VALIDATOR_URL=http://localhost:8899
     depends_on:
       - backend
       - nginx-waf
@@ -150,6 +156,37 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # HashiCorp Vault for secrets management
+  vault:
+    image: hashicorp/vault:latest
+    container_name: bbf-vault
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=dev-root-token
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+      - VAULT_ADDR=http://0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./vault/config:/vault/config:ro
+      - ./vault/policies:/vault/policies:ro
+      - ./vault/scripts:/vault/scripts:ro
+      - vault-data:/vault/file
+    command: server -dev -dev-root-token-id="dev-root-token"
+    networks:
+      - bbf-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 networks:
   bbf-network:
     driver: bridge
@@ -157,3 +194,4 @@ networks:
 volumes:
   loki-data:
   grafana-data:
+  vault-data:
