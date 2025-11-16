@@ -27,7 +27,7 @@ ProductRecord {
 ## Build
 
 ```bash
-cargo build-bpf
+cargo build-sbf
 ```
 
 ## Deploy

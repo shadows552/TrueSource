@@ -6,8 +6,8 @@
   condition: >
     spawned_process and
     container and
-    container.image.repository in (bbf-backend, bbf-frontend) and
-    not proc.name in (node, nginx, sh)
+    container.name in (bbf-backend, bbf-frontend) and
+    not proc.name in (node, nginx)
   output: >
     Unauthorized process started in container
     (user=%user.name command=%proc.cmdline container=%container.name
@@ -20,7 +20,7 @@
   condition: >
     open_read and
     container and
-    container.image.repository in (bbf-backend, bbf-frontend) and
+    container.name in (bbf-backend, bbf-frontend) and
     fd.name in (/etc/shadow, /etc/passwd, /root/.ssh/id_rsa, /.env)
   output: >
     Sensitive file accessed
@@ -34,7 +34,7 @@
   condition: >
     outbound and
     container and
-    container.image.repository in (bbf-backend, bbf-frontend) and
+    container.name in (bbf-backend, bbf-frontend) and
     not fd.sport in (80, 443, 3000, 3100, 8080, 8181, 9080) and
     not fd.dport in (80, 443, 3000, 3100, 8080, 8181, 9080)
   output: >
@@ -49,7 +49,7 @@
   condition: >
     spawned_process and
     container and
-    container.image.repository in (bbf-backend, bbf-frontend) and
+    container.name in (bbf-backend, bbf-frontend) and
     proc.name in (bash, sh, ash, zsh, csh, ksh)
   output: >
     Shell spawned in application container (potential security incident)
@@ -75,7 +75,7 @@
   condition: >
     spawned_process and
     container and
-    container.image.repository in (bbf-backend, bbf-frontend) and
+    container.name in (bbf-backend, bbf-frontend) and
     proc.name in (npm, pip, apt, apk, yum, dnf)
   output: >
     Package manager executed in running container (should be build-time only)
@@ -88,7 +88,7 @@
   condition: >
     open_write and
     container and
-    container.image.repository in (bbf-backend, bbf-frontend) and
+    container.name in (bbf-backend, bbf-frontend) and
     fd.name startswith /bin or
     fd.name startswith /sbin or
     fd.name startswith /usr/bin or
