@@ -25,9 +25,9 @@ Similar to CarFax but for consumer electronics, bikes, and high-value goods.
 
 ```
 bbf/
-├── backend/                    # Node.js REST API (425 LOC)
+├── backend/                    # Node.js REST API (418 LOC)
 │   ├── src/
-│   │   ├── index.js            # Express app (108 lines) - Main entry point
+│   │   ├── index.js            # Express app (101 lines) - Main entry point
 │   │   ├── logger.js           # Pino logging (23 lines)
 │   │   ├── loki-transport.js   # Loki integration (35 lines)
 │   │   ├── routes/
@@ -36,17 +36,19 @@ bbf/
 │   │       └── solana.js       # Blockchain service (82 lines)
 │   ├── Dockerfile              # Multi-stage production build
 │   ├── Dockerfile.minimal      # CI/CD testing build
-│   └── package.json            # Node.js 20+, Express 4.18
+│   └── package.json            # Node.js 20+, Express 5.1
 │
-├── frontend/                   # React SPA (340+ LOC)
+├── frontend/                   # React SPA (501 LOC)
 │   ├── src/
 │   │   ├── main.jsx            # React entry (10 lines)
-│   │   ├── App.jsx             # Wallet setup + network selector (72 lines)
-│   │   ├── App.css             # Component styling (193 lines)
+│   │   ├── App.jsx             # Wallet setup + network selector (71 lines)
+│   │   ├── App.css             # Component styling (192 lines)
 │   │   └── components/
-│   │       └── ProductManager.jsx  # Main UI (206 lines)
-│   ├── index.html              # HTML entry with CSP headers
+│   │       └── ProductManager.jsx  # Main UI (216 lines)
+│   ├── index.html              # HTML entry with CSP headers (12 lines)
+│   ├── nginx.conf              # Frontend NGINX configuration
 │   ├── Dockerfile              # Multi-stage Nginx build
+│   ├── Dockerfile.minimal      # CI/CD testing build
 │   ├── package.json            # React 19, Vite 7
 │   └── vite.config.js          # Build config
 │
@@ -56,8 +58,10 @@ bbf/
 │   └── Cargo.toml              # Rust dependencies
 │
 ├── nginx/                      # WAF & reverse proxy
+│   ├── Dockerfile              # Custom NGINX+ModSecurity build
 │   ├── nginx.conf              # Security config + rate limiting
-│   └── modsecurity.conf        # 7 custom WAF rules
+│   ├── modsecurity.conf        # 7 custom WAF rules
+│   └── scanner-user-agents.data # Scanner detection data
 │
 ├── opa/                        # Policy engine
 │   └── policies/
@@ -84,12 +88,13 @@ bbf/
 │
 ├── docker-compose.yml          # 8-service orchestration
 ├── start.sh                    # Helper startup script
-├── DEPLOYMENT.md               # Detailed deployment guide (340+ lines)
+├── DEPLOYMENT.md               # Deployment guide (72 lines)
 ├── REPOSITORY_DOCUMENTATION.md # Comprehensive technical docs (797 lines)
 ├── design.md                   # Architecture & design
+├── CLAUDE.md                   # AI assistant guide (910 lines)
 └── README.md                   # Main project docs
 
-Total: 947 lines of application code + 1000+ lines of configuration
+Total: 919 lines of application code + 1000+ lines of configuration
 ```
 
 ---
@@ -179,7 +184,7 @@ npm test
 ```
 
 **Key Files**:
-- `src/index.js:1-108` - Express app setup, middleware, routes
+- `src/index.js:1-101` - Express app setup, middleware, routes
 - `src/routes/products.js:1-177` - API endpoint implementations
 - `src/services/solana.js:1-82` - Solana blockchain interactions
 - `src/logger.js:1-23` - Structured logging configuration
@@ -215,10 +220,11 @@ npm run lint
 
 **Key Files**:
 - `src/main.jsx:1-10` - React app entry point
-- `src/App.jsx:1-72` - Wallet adapter setup + network selector UI
-- `src/App.css:1-193` - Application styling (network selector, cards, badges, etc.)
-- `src/components/ProductManager.jsx:1-206` - Main UI component
-- `index.html:1-14` - HTML entry with Content Security Policy headers
+- `src/App.jsx:1-71` - Wallet adapter setup + network selector UI
+- `src/App.css:1-192` - Application styling (network selector, cards, badges, etc.)
+- `src/components/ProductManager.jsx:1-216` - Main UI component
+- `index.html:1-12` - HTML entry with Content Security Policy headers
+- `nginx.conf:1-50` - Frontend NGINX server configuration
 
 **Environment Variables**:
 - `VITE_API_URL` - Backend API URL (default: http://localhost:3000/api)
@@ -730,6 +736,23 @@ docker-compose logs nginx-waf | grep -i modsecurity
 docker-compose restart nginx-waf
 ```
 
+### NGINX WAF ModSecurity Permission Issues
+
+```bash
+# If you see ModSecurity permission errors in nginx-waf logs
+# This is usually fixed by the custom nginx/Dockerfile
+
+# Check nginx-waf logs for permission errors
+docker-compose logs nginx-waf | grep -i "permission denied"
+
+# Rebuild nginx-waf container with proper permissions
+docker-compose build --no-cache nginx-waf
+docker-compose up -d nginx-waf
+
+# Verify the custom Dockerfile sets correct ownership:
+# nginx/Dockerfile should contain: chown -R nginx:nginx /etc/modsecurity.d
+```
+
 ### Build Failures in CI/CD
 
 ```bash
@@ -782,11 +805,14 @@ docker build -t test-frontend frontend/
 - `.github/workflows/security-scan.yml` - CI/CD pipeline
 
 ### Security Configurations
+- `nginx/Dockerfile` - Custom NGINX+ModSecurity container build
 - `nginx/nginx.conf` - NGINX + security headers + rate limiting
-- `nginx/modsecurity.conf` - 7 WAF rules
+- `nginx/modsecurity.conf` - 7 custom WAF rules
+- `nginx/scanner-user-agents.data` - Scanner detection patterns
 - `opa/policies/api_authz.rego` - API authorization policy
 - `opa/policies/container_authz.rego` - Container policy
-- `falco/rules/custom_rules.yaml` - 7 runtime security rules
+- `falco/falco.yaml` - Falco runtime security configuration
+- `falco/rules/custom_rules.yaml` - 7 custom runtime security rules
 
 ### Monitoring Configurations
 - `loki/loki-config.yml` - Log aggregation config
@@ -796,10 +822,10 @@ docker build -t test-frontend frontend/
 
 ### Documentation
 - `README.md` - Project overview (main docs)
-- `DEPLOYMENT.md` - Deployment guide (340+ lines)
+- `DEPLOYMENT.md` - Deployment guide (72 lines)
 - `REPOSITORY_DOCUMENTATION.md` - Technical documentation (797 lines)
 - `design.md` - Architecture and design decisions
-- `CLAUDE.md` - This file (AI assistant guide)
+- `CLAUDE.md` - This file (AI assistant guide, 910 lines)
 
 ---
 
@@ -852,12 +878,22 @@ docker system prune -a              # Clean up all unused Docker resources
 
 ### Recent Changes
 
-**2025-11-16**:
-- Added local Solana validator support with runtime network switching
-- Removed explicit Phantom wallet adapter (now auto-discovered as Standard Wallet)
-- Fixed Content Security Policy to allow API requests to localhost:3000 and localhost:8899
-- Added network selector UI with radio buttons in header
-- Enhanced App.css with styling for network selector and status badges
+**2025-11-16 (Latest)**:
+- **Security Improvements**:
+  - Created custom nginx/Dockerfile with proper ModSecurity permissions fixes
+  - Fixed Falco configuration and custom rules to eliminate startup errors
+  - Enhanced NGINX security headers with comprehensive CSP policy
+  - Improved container security with proper file ownership and permissions
+- **Documentation Updates**:
+  - Streamlined DEPLOYMENT.md (reduced from 340+ to 72 lines)
+  - Updated CLAUDE.md with accurate file counts and recent security fixes
+  - Added missing file references (nginx/Dockerfile, frontend/nginx.conf)
+- **Frontend Enhancements**:
+  - Added local Solana validator support with runtime network switching
+  - Removed explicit Phantom wallet adapter (now auto-discovered as Standard Wallet)
+  - Fixed Content Security Policy to allow API requests to localhost:3000 and localhost:8899
+  - Added network selector UI with radio buttons in header
+  - Enhanced App.css with styling for network selector and status badges
 
 ---
 
