@@ -80,7 +80,7 @@ bbf/
 ├── .github/workflows/
 │   └── security-scan.yml       # CI/CD pipeline
 │
-├── docker-compose.yml          # 10-service orchestration
+├── docker-compose.yml          # 8-service orchestration
 ├── start.sh                    # Helper startup script
 ├── DEPLOYMENT.md               # Detailed deployment guide (340+ lines)
 ├── REPOSITORY_DOCUMENTATION.md # Comprehensive technical docs (797 lines)
@@ -99,15 +99,15 @@ Total: 947 lines of application code + 1000+ lines of configuration
   - On-chain program in Rust (Solana Program v1.17)
   - Borsh serialization for data structures
 - **Backend**: Node.js 20+
-  - Express 4.18.2 (REST API framework)
-  - Pino 8.17.2 (structured JSON logging)
-  - @solana/web3.js 1.87.6 (blockchain integration)
-  - Helmet 7.1.0 (security headers)
-  - express-rate-limit 7.1.5 (API rate limiting)
-- **Frontend**: React 18.2.0
-  - Vite 5.0.11 (build tool)
+  - Express 5.1.0 (REST API framework)
+  - Pino 10.1.0 (structured JSON logging)
+  - @solana/web3.js 1.98.4 (blockchain integration)
+  - Helmet 8.1.0 (security headers)
+  - express-rate-limit 8.2.1 (API rate limiting)
+- **Frontend**: React 19.2.0
+  - Vite 7.2.2 (build tool)
   - @solana/wallet-adapter-react (wallet integration)
-  - Axios 1.6.5 (HTTP client)
+  - Axios 1.13.2 (HTTP client)
 
 ### Infrastructure Layer
 - **Containerization**: Docker + Docker Compose
@@ -123,9 +123,9 @@ Total: 947 lines of application code + 1000+ lines of configuration
 - **Storage**: BoltDB (filesystem-based)
 
 ### Development Tools
-- **Linting**: ESLint 8.56.0
-- **Testing**: Jest 29.7.0
-- **Dev Server**: Nodemon 3.0.2, Vite dev server
+- **Linting**: ESLint 9.39.1
+- **Testing**: Jest 30.2.0
+- **Dev Server**: Nodemon 3.1.11, Vite dev server
 - **CI/CD**: GitHub Actions
 - **Security Scanning**: Trivy, npm audit
 
@@ -747,7 +747,7 @@ docker build -t test-frontend frontend/
 ## Important Files Reference
 
 ### Configuration Files
-- `docker-compose.yml` - All service definitions (10 services)
+- `docker-compose.yml` - All service definitions (8 services)
 - `backend/.env` - Backend environment variables
 - `frontend/.env` - Frontend environment variables
 - `.github/workflows/security-scan.yml` - CI/CD pipeline
@@ -816,7 +816,7 @@ docker system prune -a              # Clean up all unused Docker resources
 - **Project Version**: 1.0.0
 - **Node.js**: 20+
 - **Solana Program**: 1.17
-- **Documentation Last Updated**: 2025-01-XX (Update when modifying)
+- **Documentation Last Updated**: 2025-11-16
 
 ---
 
