@@ -4,6 +4,11 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    libusb-dev
 COPY package*.json ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
