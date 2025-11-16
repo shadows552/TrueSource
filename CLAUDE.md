@@ -38,14 +38,16 @@ bbf/
 │   ├── Dockerfile.minimal      # CI/CD testing build
 │   └── package.json            # Node.js 20+, Express 4.18
 │
-├── frontend/                   # React SPA (253 LOC)
+├── frontend/                   # React SPA (340+ LOC)
 │   ├── src/
 │   │   ├── main.jsx            # React entry (10 lines)
-│   │   ├── App.jsx             # Wallet setup (37 lines)
+│   │   ├── App.jsx             # Wallet setup + network selector (72 lines)
+│   │   ├── App.css             # Component styling (193 lines)
 │   │   └── components/
 │   │       └── ProductManager.jsx  # Main UI (206 lines)
+│   ├── index.html              # HTML entry with CSP headers
 │   ├── Dockerfile              # Multi-stage Nginx build
-│   ├── package.json            # React 18, Vite 5
+│   ├── package.json            # React 19, Vite 7
 │   └── vite.config.js          # Build config
 │
 ├── solana-program/             # Rust on-chain program (247 LOC)
@@ -107,7 +109,9 @@ Total: 947 lines of application code + 1000+ lines of configuration
 - **Frontend**: React 19.2.0
   - Vite 7.2.2 (build tool)
   - @solana/wallet-adapter-react (wallet integration)
+  - @solana/wallet-adapter-react-ui (wallet UI components)
   - Axios 1.13.2 (HTTP client)
+  - Supports Devnet and Local Validator networks with runtime switching
 
 ### Infrastructure Layer
 - **Containerization**: Docker + Docker Compose
@@ -211,12 +215,21 @@ npm run lint
 
 **Key Files**:
 - `src/main.jsx:1-10` - React app entry point
-- `src/App.jsx:1-37` - Wallet adapter setup
+- `src/App.jsx:1-72` - Wallet adapter setup + network selector UI
+- `src/App.css:1-193` - Application styling (network selector, cards, badges, etc.)
 - `src/components/ProductManager.jsx:1-206` - Main UI component
+- `index.html:1-14` - HTML entry with Content Security Policy headers
 
 **Environment Variables**:
 - `VITE_API_URL` - Backend API URL (default: http://localhost:3000/api)
-- `VITE_SOLANA_NETWORK` - Solana network (default: devnet)
+- `VITE_SOLANA_NETWORK` - Solana network: `devnet`, `testnet`, `mainnet-beta`, or `validator` (default: devnet)
+- `VITE_SOLANA_VALIDATOR_URL` - Local validator URL (default: http://localhost:8899) - Required when using local validator
+
+**Network Selection**:
+The frontend supports switching between Solana Devnet and a local validator at runtime via radio buttons in the header. Set `VITE_SOLANA_NETWORK=validator` in `.env` to default to local validator on startup. Users can toggle between networks without reloading the page.
+
+**Wallet Adapter**:
+Uses Solana Wallet Adapter with automatic wallet discovery. Phantom and other Standard Wallets are automatically detected without explicit configuration.
 
 ### Solana Program Development
 
@@ -305,11 +318,14 @@ router.get('/api/products/:productId/status', async (req, res) => {
 
 ### Task 2: Modifying the Frontend UI
 
-1. **Edit component** in `frontend/src/components/ProductManager.jsx`
+1. **Edit component** in `frontend/src/components/ProductManager.jsx` or `frontend/src/App.jsx`
 2. **Follow React patterns**: Use useState for state, async/await for API calls
 3. **Handle errors**: Set message state with error details
-4. **Test in browser**: http://localhost:8080 (after docker-compose up)
-5. **Check console** for errors
+4. **Update CSP if needed**: If adding external connections, update Content-Security-Policy in `frontend/index.html`
+5. **Update styling**: Modify `frontend/src/App.css` for visual changes
+6. **Test in browser**: http://localhost:8080 (after docker-compose up)
+7. **Check console** for errors and CSP violations
+8. **Test network switching**: Verify functionality works on both Devnet and Local Validator
 
 ### Task 3: Adding Security Rules
 
@@ -540,7 +556,12 @@ res.status(4xx/5xx).json({
 - Package manager execution alerts
 
 **Layer 4: Application Security**
-- Helmet.js security headers
+- Helmet.js security headers (backend)
+- Content Security Policy (CSP) headers in frontend/index.html
+  - Restricts script sources to 'self' and 'unsafe-inline'
+  - Restricts style sources to 'self' and 'unsafe-inline'
+  - Allows connections to localhost:3000 (backend), localhost:8899 (local validator), and Solana RPC endpoints
+  - Prevents XSS and unauthorized resource loading
 - CORS configuration
 - Express rate limiting (100 req/15min)
 - Environment-based secrets
@@ -622,7 +643,8 @@ API_SECRET=<generate-strong-secret>
 
 # Frontend
 VITE_API_URL=https://api.your-domain.com/api
-VITE_SOLANA_NETWORK=devnet  # Change to mainnet-beta for production
+VITE_SOLANA_NETWORK=devnet  # Options: devnet, testnet, mainnet-beta, validator
+VITE_SOLANA_VALIDATOR_URL=http://localhost:8899  # Required when using local validator
 ```
 
 ---
@@ -652,6 +674,13 @@ curl http://localhost:3000/health
 
 # Check CORS configuration in backend/src/index.js
 # Ensure frontend origin is in ALLOWED_ORIGINS
+
+# Check Content Security Policy in frontend/index.html
+# Verify connect-src includes http://localhost:3000
+# Example: connect-src 'self' http://localhost:3000 http://localhost:8899 https://api.devnet.solana.com
+
+# Check browser console for CSP violations
+# Look for "blocked by Content Security Policy" errors
 
 # Check network configuration in docker-compose.yml
 ```
@@ -815,8 +844,20 @@ docker system prune -a              # Clean up all unused Docker resources
 
 - **Project Version**: 1.0.0
 - **Node.js**: 20+
+- **React**: 19.2.0
+- **Vite**: 7.2.2
 - **Solana Program**: 1.17
+- **Supported Networks**: Devnet, Local Validator (Testnet and Mainnet-beta ready)
 - **Documentation Last Updated**: 2025-11-16
+
+### Recent Changes
+
+**2025-11-16**:
+- Added local Solana validator support with runtime network switching
+- Removed explicit Phantom wallet adapter (now auto-discovered as Standard Wallet)
+- Fixed Content Security Policy to allow API requests to localhost:3000 and localhost:8899
+- Added network selector UI with radio buttons in header
+- Enhanced App.css with styling for network selector and status badges
 
 ---
 
