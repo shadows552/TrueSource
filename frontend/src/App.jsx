@@ -33,8 +33,8 @@ function App() {
         <WalletModalProvider>
           <div className="App">
             <header className="App-header">
-              <h1>Product Provenance Tracker</h1>
-              <p>Secure, blockchain-based product lifecycle tracking</p>
+              <h1><span className="true-text">True</span>Source</h1>
+              <p>Track a Product's Life Story</p>
 
               {/* Network Selection */}
               <div className="network-selector">

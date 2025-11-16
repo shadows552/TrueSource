@@ -27,6 +27,10 @@ body {
   color: #423826;
 }
 
+.App-header h1 .true-text {
+  color: #6aa84f;
+}
+
 .App-header p {
   font-size: 1.2rem;
   font-weight: 400;
@@ -121,6 +125,33 @@ body {
 .wallet-section {
   text-align: center;
   margin-bottom: 20px;
+}
+
+.user-pubkey {
+  margin-top: 15px;
+  background: white;
+  padding: 12px 20px;
+  border-radius: 25px;
+  border: 2px solid #C7B5A9;
+  display: inline-block;
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pubkey-label {
+  color: #423826;
+  font-weight: 700;
+  margin-right: 10px;
+  font-size: 0.95rem;
+}
+
+.pubkey-value {
+  color: #6aa84f;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  word-break: break-all;
 }
 
 .connection-info {
@@ -266,6 +297,7 @@ body {
 .form-group input,
 .form-group textarea {
   width: 100%;
+  max-width: 600px;
   padding: 14px;
   border: 2px solid #C7B5A9;
   border-radius: 10px;
@@ -277,6 +309,10 @@ body {
   color: #423826;
 }
 
+.form-group input {
+  height: 48px;
+}
+
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
@@ -285,8 +321,37 @@ body {
 }
 
 .form-group textarea {
-  min-height: 100px;
-  resize: vertical;
+  height: 120px;
+  resize: none;
+}
+
+.form-group input.readonly-field {
+  background: #f5f5f5;
+  cursor: not-allowed;
+  color: #6aa84f;
+  font-weight: 500;
+}
+
+.product-exists-warning {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  color: #92400e;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.product-exists-info {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: #d1fae5;
+  border: 2px solid #6aa84f;
+  border-radius: 8px;
+  color: #065f46;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .submit-button {
@@ -356,6 +421,113 @@ body {
   font-size: 0.9rem;
   color: #423826;
   font-weight: 400;
+}
+
+/* Recent Transactions Styles */
+.recent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 3px solid #C7B5A9;
+}
+
+.recent-header h3 {
+  color: #423826;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.refresh-button {
+  padding: 10px 20px;
+  background: #6aa84f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Roboto', sans-serif;
+}
+
+.refresh-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(106, 168, 79, 0.3);
+}
+
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.recent-transactions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.transaction-card {
+  background: #eee4dd;
+  border-radius: 12px;
+  padding: 18px;
+  border-left: 4px solid #6aa84f;
+  transition: all 0.3s ease;
+}
+
+.transaction-card:hover {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(66, 56, 38, 0.15);
+}
+
+.transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #C7B5A9;
+}
+
+.transaction-type {
+  color: #6aa84f;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.transaction-time {
+  color: #423826;
+  font-size: 0.85rem;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.transaction-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.transaction-details p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #423826;
+  font-weight: 400;
+}
+
+.transaction-details strong {
+  font-weight: 600;
+  color: #423826;
+}
+
+.no-transactions {
+  text-align: center;
+  padding: 40px 20px;
+  color: #423826;
+  font-size: 1.1rem;
+  opacity: 0.7;
 }
 
 /* Old grid styles for backward compatibility */

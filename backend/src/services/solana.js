@@ -9,6 +9,13 @@ class SolanaService {
     this.connection = new Connection(rpcUrl, 'confirmed');
     this.programId = new PublicKey(process.env.SOLANA_PROGRAM_ID || '11111111111111111111111111111111');
 
+    // In-memory storage for product transactions
+    // productId -> array of transactions
+    this.productHistory = new Map();
+
+    // Array of all transactions for recent entries
+    this.allTransactions = [];
+
     logger.info({
       type: 'solana_service_initialized',
       network,
@@ -22,6 +29,26 @@ class SolanaService {
       productId,
       manufacturer: manufacturerPublicKey
     });
+
+    // Check if product already exists
+    if (this.productHistory.has(productId)) {
+      throw new Error('Product ID already exists');
+    }
+
+    // Create transaction record
+    const transaction = {
+      type: 'Manufacture',
+      timestamp: Date.now(),
+      owner: manufacturerPublicKey,
+      metadata: metadata || '',
+      productId
+    };
+
+    // Store in product history
+    this.productHistory.set(productId, [transaction]);
+
+    // Add to all transactions
+    this.allTransactions.push(transaction);
 
     // TODO: Implement actual Solana transaction
     // This is a placeholder that should be replaced with actual Solana program interaction
@@ -40,6 +67,28 @@ class SolanaService {
       to: nextOwner
     });
 
+    // Check if product exists
+    if (!this.productHistory.has(productId)) {
+      throw new Error('Product ID does not exist');
+    }
+
+    // Create transaction record
+    const transaction = {
+      type: 'Transfer',
+      timestamp: Date.now(),
+      owner: nextOwner,
+      previousOwner: currentOwner,
+      productId
+    };
+
+    // Add to product history
+    const history = this.productHistory.get(productId);
+    history.push(transaction);
+    this.productHistory.set(productId, history);
+
+    // Add to all transactions
+    this.allTransactions.push(transaction);
+
     // TODO: Implement actual Solana transaction
 
     return {
@@ -54,6 +103,28 @@ class SolanaService {
       owner
     });
 
+    // Check if product exists
+    if (!this.productHistory.has(productId)) {
+      throw new Error('Product ID does not exist');
+    }
+
+    // Create transaction record
+    const transaction = {
+      type: 'Repair',
+      timestamp: Date.now(),
+      owner,
+      metadata,
+      productId
+    };
+
+    // Add to product history
+    const history = this.productHistory.get(productId);
+    history.push(transaction);
+    this.productHistory.set(productId, history);
+
+    // Add to all transactions
+    this.allTransactions.push(transaction);
+
     // TODO: Implement actual Solana transaction
 
     return {
@@ -67,15 +138,23 @@ class SolanaService {
       productId
     });
 
-    // TODO: Implement actual Solana account fetching and history traversal
+    // Check if product exists
+    if (!this.productHistory.has(productId)) {
+      throw new Error('Product ID does not exist');
+    }
 
-    return [
-      {
-        type: 'Manufacture',
-        timestamp: Date.now(),
-        owner: 'mock_owner_pubkey'
-      }
-    ];
+    // Return product history
+    return this.productHistory.get(productId);
+  }
+
+  async getRecentTransactions(limit = 10) {
+    logger.info({
+      type: 'solana_get_recent_transactions',
+      limit
+    });
+
+    // Return the most recent transactions
+    return this.allTransactions.slice(-limit).reverse();
   }
 }
 

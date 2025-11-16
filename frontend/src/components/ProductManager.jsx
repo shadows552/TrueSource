@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
@@ -15,10 +15,52 @@ function ProductManager({ network = 'devnet' }) {
   const [history, setHistory] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [existingProduct, setExistingProduct] = useState(null);
+  const [originalOwner, setOriginalOwner] = useState('');
+  const [recentTransactions, setRecentTransactions] = useState([]);
+
+  useEffect(() => {
+    if (currentView === 'recent') {
+      fetchRecentTransactions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentView]);
 
   const showMessage = (msg, isError = false) => {
     setMessage({ text: msg, error: isError });
     setTimeout(() => setMessage(''), 5000);
+  };
+
+  const searchExistingProduct = async (id) => {
+    if (!id || id.trim() === '') {
+      setExistingProduct(null);
+      setOriginalOwner('');
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API_URL}/products/${id}/history`);
+      if (response.data.history && response.data.history.length > 0) {
+        const firstTransaction = response.data.history[0];
+        setExistingProduct(firstTransaction);
+        setOriginalOwner(firstTransaction.owner || '');
+      } else {
+        setExistingProduct(null);
+        setOriginalOwner('');
+      }
+    } catch (error) {
+      // Product doesn't exist, which is fine
+      setExistingProduct(null);
+      setOriginalOwner('');
+    }
+  };
+
+  const handleProductIdChange = (id) => {
+    setProductId(id);
+    // Auto-search for existing product
+    if (currentView !== 'search') {
+      searchExistingProduct(id);
+    }
   };
 
   const createProduct = async () => {
@@ -102,6 +144,18 @@ function ProductManager({ network = 'devnet' }) {
     }
   };
 
+  const fetchRecentTransactions = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API_URL}/products/recent/transactions?limit=10`);
+      setRecentTransactions(response.data.transactions);
+    } catch (error) {
+      showMessage(`Error: ${error.response?.data?.error || error.message}`, true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderForm = () => {
     switch (currentView) {
       case 'create':
@@ -114,8 +168,13 @@ function ProductManager({ network = 'devnet' }) {
                 type="text"
                 placeholder="Enter product ID"
                 value={productId}
-                onChange={(e) => setProductId(e.target.value)}
+                onChange={(e) => handleProductIdChange(e.target.value)}
               />
+              {existingProduct && (
+                <div className="product-exists-warning">
+                  ⚠️ Product already exists! First owner: {existingProduct.owner}
+                </div>
+              )}
             </div>
             <div className="form-group">
               <label htmlFor="metadata">Metadata (Optional)</label>
@@ -142,7 +201,23 @@ function ProductManager({ network = 'devnet' }) {
                 type="text"
                 placeholder="Enter product ID to transfer"
                 value={productId}
-                onChange={(e) => setProductId(e.target.value)}
+                onChange={(e) => handleProductIdChange(e.target.value)}
+              />
+              {existingProduct && (
+                <div className="product-exists-info">
+                  ✓ Product found! First owner: {existingProduct.owner}
+                </div>
+              )}
+            </div>
+            <div className="form-group">
+              <label htmlFor="originalOwner">Original Owner (Manufacturer)</label>
+              <input
+                id="originalOwner"
+                type="text"
+                placeholder="Original owner public key"
+                value={originalOwner}
+                readOnly
+                className="readonly-field"
               />
             </div>
             <div className="form-group">
@@ -171,7 +246,23 @@ function ProductManager({ network = 'devnet' }) {
                 type="text"
                 placeholder="Enter product ID"
                 value={productId}
-                onChange={(e) => setProductId(e.target.value)}
+                onChange={(e) => handleProductIdChange(e.target.value)}
+              />
+              {existingProduct && (
+                <div className="product-exists-info">
+                  ✓ Product found! First owner: {existingProduct.owner}
+                </div>
+              )}
+            </div>
+            <div className="form-group">
+              <label htmlFor="originalOwner">Original Owner (Manufacturer)</label>
+              <input
+                id="originalOwner"
+                type="text"
+                placeholder="Original owner public key"
+                value={originalOwner}
+                readOnly
+                className="readonly-field"
               />
             </div>
             <div className="form-group">
@@ -221,6 +312,43 @@ function ProductManager({ network = 'devnet' }) {
           </div>
         );
 
+      case 'recent':
+        return (
+          <div className="product-form">
+            <div className="recent-header">
+              <h3>Recent Product Changes</h3>
+              <button className="refresh-button" onClick={fetchRecentTransactions} disabled={loading}>
+                {loading ? 'Loading...' : '🔄 Refresh'}
+              </button>
+            </div>
+
+            {recentTransactions.length > 0 ? (
+              <div className="recent-transactions">
+                {recentTransactions.map((record, idx) => (
+                  <div key={idx} className="transaction-card">
+                    <div className="transaction-header">
+                      <span className="transaction-type">{record.type}</span>
+                      <span className="transaction-time">
+                        {new Date(record.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="transaction-details">
+                      <p><strong>Product ID:</strong> {record.productId}</p>
+                      <p><strong>Owner:</strong> {record.owner}</p>
+                      {record.metadata && <p><strong>Details:</strong> {record.metadata}</p>}
+                      {record.previousOwner && <p><strong>Previous Owner:</strong> {record.previousOwner}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-transactions">
+                <p>No recent transactions found. Create a product to get started!</p>
+              </div>
+            )}
+          </div>
+        );
+
       default:
         return null;
     }
@@ -230,6 +358,12 @@ function ProductManager({ network = 'devnet' }) {
     <div className="product-manager">
       <div className="wallet-section">
         <WalletMultiButton />
+        {connected && publicKey && (
+          <div className="user-pubkey">
+            <span className="pubkey-label">Your Public Key:</span>
+            <span className="pubkey-value">{publicKey.toString()}</span>
+          </div>
+        )}
       </div>
 
       {message && (
@@ -263,6 +397,12 @@ function ProductManager({ network = 'devnet' }) {
             onClick={() => setCurrentView('search')}
           >
             Search History
+          </button>
+          <button
+            className={`view-tab ${currentView === 'recent' ? 'active' : ''}`}
+            onClick={() => setCurrentView('recent')}
+          >
+            Recent Entries
           </button>
         </div>
 

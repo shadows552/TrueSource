@@ -174,4 +174,34 @@ router.get('/:productId/history', async (req, res, next) => {
   }
 });
 
+// Get recent transactions
+router.get('/recent/transactions', async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+
+    logger.info({
+      type: 'recent_transactions_request',
+      limit
+    });
+
+    const transactions = await solanaService.getRecentTransactions(limit);
+
+    logger.info({
+      type: 'recent_transactions_retrieved',
+      count: transactions.length
+    });
+
+    res.json({
+      success: true,
+      transactions
+    });
+  } catch (error) {
+    logger.error({
+      type: 'recent_transactions_error',
+      error: error.message
+    });
+    next(error);
+  }
+});
+
 module.exports = router;
