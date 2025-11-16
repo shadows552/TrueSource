@@ -82,18 +82,18 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed setup instructions.
 - ✅ **Security headers** (CSP, HSTS, X-Frame-Options, etc.)
 - ✅ **Environment-based secrets** management
 
-## 📊 Hackathon Scorecard
+## Hackathon Scorecard
 
 | Category | Score | Implementation |
 |----------|-------|----------------|
-| **1. CI/CD Pipeline** | 3/3 | ✅ GitHub Actions + Trivy + npm audit + blocks deployment |
-| **2. Configuration & Secrets** | 2/3 | ✅ Environment variables + .gitignore + Vault-ready |
-| **3. Observability** | 3/3 | ✅ Structured logs + Loki + Grafana dashboards |
-| **4. Service Exposure** | 3/3 | ✅ ModSecurity WAF + Rate limiting + OPA policies |
-| **5. Runtime & Identity** | 3/3 | ✅ Falco monitoring + Wallet authentication |
-| **📈 Technical Total** | **14/15** | **93% - Excellent!** |
+| **1. CI/CD Pipeline** | 3/3 | GitHub Actions + Trivy + npm audit + blocks deployment |
+| **2. Configuration & Secrets** | 2/3 | Environment variables + .gitignore + Vault-ready |
+| **3. Observability** | 3/3 | Structured logs + Loki + Grafana dashboards |
+| **4. Service Exposure** | 3/3 | ModSecurity WAF + Rate limiting + OPA policies |
+| **5. Runtime & Identity** | 3/3 | Falco monitoring + Wallet authentication |
+| **Technical Total** | **14/15** | **93% - Excellent!** |
 
-## 🎯 Use Cases
+## Use Cases
 
 - **Second-hand Resale**: Prove legitimate ownership with blockchain verification
 - **Repair History**: Verify authorized repairs for increased resale value
@@ -103,7 +103,7 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed setup instructions.
 
 Similar to CarFax but for consumer electronics, bikes, and high-value goods.
 
-## 🛡️ Security Demonstrations
+## Security Demonstrations
 
 The security stack actively detects and prevents:
 
@@ -133,7 +133,7 @@ View live security events in Grafana: http://localhost:3001/d/bbf-security
 - [Backend API](./backend/README.md) - REST API documentation
 - [Frontend](./frontend/README.md) - Web UI setup
 
-## 🧪 Quick Security Tests
+## Quick Security Tests
 
 ```bash
 # 1. Trigger Falco alert (shell in container)
@@ -159,15 +159,15 @@ open http://localhost:3001/d/bbf-security
 **Infrastructure**: Docker Compose, NGINX
 **CI/CD**: GitHub Actions, Trivy, Cosign
 
-## 🏅 Hackathon Highlights
+## Hackathon Highlights
 
 This project demonstrates:
-- ✅ Production-grade security practices
-- ✅ Full observability stack with real-time monitoring
-- ✅ Runtime threat detection and prevention
-- ✅ Supply chain security (image signing, vulnerability scanning)
-- ✅ Zero-trust architecture (policy-based access control)
-- ✅ Cloud-native design patterns
-- ✅ Open-source tooling throughout
+- Production-grade security practices
+- Full observability stack with real-time monitoring
+- Runtime threat detection and prevention
+- Supply chain security (image signing, vulnerability scanning)
+- Zero-trust architecture (policy-based access control)
+- Cloud-native design patterns
+- Open-source tooling throughout
 
 Perfect score potential: **14-15/15** on technical criteria!
