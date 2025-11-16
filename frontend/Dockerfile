@@ -9,7 +9,8 @@ RUN apk add --no-cache \
     make \
     g++ \
     libusb-dev \
-    linux-headers
+    linux-headers \
+    eudev-dev
 COPY package*.json ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
