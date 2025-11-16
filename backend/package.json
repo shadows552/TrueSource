@@ -39,6 +39,9 @@
     "jest": "^30.2.0",
     "nodemon": "^3.1.11"
   },
+  "overrides": {
+    "js-yaml": "^4.1.1"
+  },
   "engines": {
     "node": ">=20.0.0"
   }

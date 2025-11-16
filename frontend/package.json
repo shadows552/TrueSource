@@ -26,6 +26,10 @@
     "globals": "^16.5.0",
     "vite": "^7.2.2"
   },
+  "overrides": {
+    "js-yaml": "^4.1.1",
+    "fast-redact": ">=3.5.0"
+  },
   "engines": {
     "node": ">=20.0.0"
   }
