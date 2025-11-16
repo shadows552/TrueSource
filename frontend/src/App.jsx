@@ -46,7 +46,7 @@ function App() {
                     checked={!useValidator}
                     onChange={() => setUseValidator(false)}
                   />
-                  Devnet
+                  <span>Devnet</span>
                 </label>
                 <label>
                   <input
@@ -56,11 +56,11 @@ function App() {
                     checked={useValidator}
                     onChange={() => setUseValidator(true)}
                   />
-                  Local Validator
+                  <span>Local Validator</span>
                 </label>
-                <span className="network-info">
-                  Endpoint: {useValidator ? validatorUrl : 'https://api.devnet.solana.com'}
-                </span>
+              </div>
+              <div className="network-info">
+                Endpoint: {useValidator ? validatorUrl : 'https://api.devnet.solana.com'}
               </div>
             </header>
             <ProductManager network={useValidator ? 'validator' : 'devnet'} />

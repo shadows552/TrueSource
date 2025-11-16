@@ -8,10 +8,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 function ProductManager({ network = 'devnet' }) {
   const { publicKey, connected } = useWallet();
+  const [currentView, setCurrentView] = useState('create');
   const [productId, setProductId] = useState('');
   const [metadata, setMetadata] = useState('');
   const [nextOwner, setNextOwner] = useState('');
-  const [searchId, setSearchId] = useState('');
   const [history, setHistory] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -91,13 +91,138 @@ function ProductManager({ network = 'devnet' }) {
 
   const searchProduct = async () => {
     setLoading(true);
+    setHistory(null);
     try {
-      const response = await axios.get(`${API_URL}/products/${searchId}/history`);
+      const response = await axios.get(`${API_URL}/products/${productId}/history`);
       setHistory(response.data.history);
     } catch (error) {
       showMessage(`Error: ${error.response?.data?.error || error.message}`, true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const renderForm = () => {
+    switch (currentView) {
+      case 'create':
+        return (
+          <div className="product-form">
+            <div className="form-group">
+              <label htmlFor="productId">Product ID (Serial Number)</label>
+              <input
+                id="productId"
+                type="text"
+                placeholder="Enter product serial number"
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="metadata">Metadata (Optional)</label>
+              <textarea
+                id="metadata"
+                placeholder="Product description, specifications, etc."
+                value={metadata}
+                onChange={(e) => setMetadata(e.target.value)}
+              />
+            </div>
+            <button className="submit-button" onClick={createProduct} disabled={loading || !connected}>
+              {loading ? 'Creating Product...' : 'Create Product'}
+            </button>
+          </div>
+        );
+
+      case 'transfer':
+        return (
+          <div className="product-form">
+            <div className="form-group">
+              <label htmlFor="productId">Product ID</label>
+              <input
+                id="productId"
+                type="text"
+                placeholder="Enter product ID to transfer"
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="nextOwner">New Owner Public Key</label>
+              <input
+                id="nextOwner"
+                type="text"
+                placeholder="Enter new owner's wallet address"
+                value={nextOwner}
+                onChange={(e) => setNextOwner(e.target.value)}
+              />
+            </div>
+            <button className="submit-button" onClick={transferProduct} disabled={loading || !connected}>
+              {loading ? 'Transferring Ownership...' : 'Transfer Ownership'}
+            </button>
+          </div>
+        );
+
+      case 'repair':
+        return (
+          <div className="product-form">
+            <div className="form-group">
+              <label htmlFor="productId">Product ID</label>
+              <input
+                id="productId"
+                type="text"
+                placeholder="Enter product ID"
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="metadata">Repair Details</label>
+              <textarea
+                id="metadata"
+                placeholder="Describe the repair work performed"
+                value={metadata}
+                onChange={(e) => setMetadata(e.target.value)}
+              />
+            </div>
+            <button className="submit-button" onClick={recordRepair} disabled={loading || !connected}>
+              {loading ? 'Recording Repair...' : 'Record Repair'}
+            </button>
+          </div>
+        );
+
+      case 'search':
+        return (
+          <div className="product-form">
+            <div className="form-group">
+              <label htmlFor="productId">Product ID</label>
+              <input
+                id="productId"
+                type="text"
+                placeholder="Enter product ID to search"
+                value={productId}
+                onChange={(e) => setProductId(e.target.value)}
+              />
+            </div>
+            <button className="submit-button" onClick={searchProduct} disabled={loading}>
+              {loading ? 'Searching...' : 'Search Product History'}
+            </button>
+
+            {history && (
+              <div className="history">
+                <h3>Product History</h3>
+                {history.map((record, idx) => (
+                  <div key={idx} className="history-record">
+                    <strong>{record.type}</strong>
+                    <p>Owner: {record.owner}</p>
+                    <p>Time: {new Date(record.timestamp).toLocaleString()}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
+      default:
+        return null;
     }
   };
 
@@ -111,7 +236,7 @@ function ProductManager({ network = 'devnet' }) {
           </p>
           {connected && (
             <p className="wallet-address">
-              Connected: {publicKey.toString().slice(0, 8)}...
+              Wallet Connected
             </p>
           )}
         </div>
@@ -123,87 +248,35 @@ function ProductManager({ network = 'devnet' }) {
         </div>
       )}
 
-      <div className="actions-grid">
-        <div className="action-card">
-          <h2>Create Product</h2>
-          <input
-            type="text"
-            placeholder="Product ID (S/N)"
-            value={productId}
-            onChange={(e) => setProductId(e.target.value)}
-          />
-          <textarea
-            placeholder="Metadata (optional)"
-            value={metadata}
-            onChange={(e) => setMetadata(e.target.value)}
-          />
-          <button onClick={createProduct} disabled={loading || !connected}>
-            {loading ? 'Creating...' : 'Create Product'}
+      <div className="product-manager-container">
+        <div className="view-selector">
+          <button
+            className={`view-tab ${currentView === 'create' ? 'active' : ''}`}
+            onClick={() => setCurrentView('create')}
+          >
+            Create Product
+          </button>
+          <button
+            className={`view-tab ${currentView === 'transfer' ? 'active' : ''}`}
+            onClick={() => setCurrentView('transfer')}
+          >
+            Transfer Ownership
+          </button>
+          <button
+            className={`view-tab ${currentView === 'repair' ? 'active' : ''}`}
+            onClick={() => setCurrentView('repair')}
+          >
+            Record Repair
+          </button>
+          <button
+            className={`view-tab ${currentView === 'search' ? 'active' : ''}`}
+            onClick={() => setCurrentView('search')}
+          >
+            Search History
           </button>
         </div>
 
-        <div className="action-card">
-          <h2>Transfer Ownership</h2>
-          <input
-            type="text"
-            placeholder="Product ID"
-            value={productId}
-            onChange={(e) => setProductId(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="New Owner Public Key"
-            value={nextOwner}
-            onChange={(e) => setNextOwner(e.target.value)}
-          />
-          <button onClick={transferProduct} disabled={loading || !connected}>
-            {loading ? 'Transferring...' : 'Transfer'}
-          </button>
-        </div>
-
-        <div className="action-card">
-          <h2>Record Repair</h2>
-          <input
-            type="text"
-            placeholder="Product ID"
-            value={productId}
-            onChange={(e) => setProductId(e.target.value)}
-          />
-          <textarea
-            placeholder="Repair details"
-            value={metadata}
-            onChange={(e) => setMetadata(e.target.value)}
-          />
-          <button onClick={recordRepair} disabled={loading || !connected}>
-            {loading ? 'Recording...' : 'Record Repair'}
-          </button>
-        </div>
-
-        <div className="action-card">
-          <h2>Search Product History</h2>
-          <input
-            type="text"
-            placeholder="Product ID"
-            value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
-          />
-          <button onClick={searchProduct} disabled={loading}>
-            {loading ? 'Searching...' : 'Search'}
-          </button>
-
-          {history && (
-            <div className="history">
-              <h3>Product History</h3>
-              {history.map((record, idx) => (
-                <div key={idx} className="history-record">
-                  <strong>{record.type}</strong>
-                  <p>Owner: {record.owner}</p>
-                  <p>Time: {new Date(record.timestamp).toLocaleString()}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {renderForm()}
       </div>
     </div>
   );
