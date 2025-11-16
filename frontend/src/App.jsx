@@ -24,13 +24,16 @@ function App() {
     return clusterApiUrl(network);
   }, [useValidator, validatorUrl]);
 
+  // Empty wallets array for auto-discovery of Standard Wallets
+  const wallets = useMemo(() => [], []);
+
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider autoConnect>
+      <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <div className="App">
             <header className="App-header">
-              <h1>🔗 Product Provenance Tracker</h1>
+              <h1>Product Provenance Tracker</h1>
               <p>Secure, blockchain-based product lifecycle tracking</p>
 
               {/* Network Selection */}
