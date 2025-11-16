@@ -72,6 +72,14 @@ class SolanaService {
       throw new Error('Product ID does not exist');
     }
 
+    // Get product history and verify current owner
+    const history = this.productHistory.get(productId);
+    const latestRecord = history[history.length - 1];
+
+    if (latestRecord.owner !== currentOwner) {
+      throw new Error(`Ownership verification failed. Current owner is ${latestRecord.owner}, not ${currentOwner}`);
+    }
+
     // Create transaction record
     const transaction = {
       type: 'Transfer',
@@ -82,7 +90,6 @@ class SolanaService {
     };
 
     // Add to product history
-    const history = this.productHistory.get(productId);
     history.push(transaction);
     this.productHistory.set(productId, history);
 
@@ -108,6 +115,14 @@ class SolanaService {
       throw new Error('Product ID does not exist');
     }
 
+    // Get product history and verify current owner
+    const history = this.productHistory.get(productId);
+    const latestRecord = history[history.length - 1];
+
+    if (latestRecord.owner !== owner) {
+      throw new Error(`Ownership verification failed. Current owner is ${latestRecord.owner}, not ${owner}`);
+    }
+
     // Create transaction record
     const transaction = {
       type: 'Repair',
@@ -118,7 +133,6 @@ class SolanaService {
     };
 
     // Add to product history
-    const history = this.productHistory.get(productId);
     history.push(transaction);
     this.productHistory.set(productId, history);
 
