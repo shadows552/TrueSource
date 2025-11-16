@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-function ProductManager() {
+function ProductManager({ network = 'devnet' }) {
   const { publicKey, connected } = useWallet();
   const [productId, setProductId] = useState('');
   const [metadata, setMetadata] = useState('');
@@ -104,11 +105,16 @@ function ProductManager() {
     <div className="product-manager">
       <div className="wallet-section">
         <WalletMultiButton />
-        {connected && (
-          <p className="wallet-address">
-            Connected: {publicKey.toString().slice(0, 8)}...
+        <div className="connection-info">
+          <p className="network-status">
+            Network: <span className="network-badge">{network.toUpperCase()}</span>
           </p>
-        )}
+          {connected && (
+            <p className="wallet-address">
+              Connected: {publicKey.toString().slice(0, 8)}...
+            </p>
+          )}
+        </div>
       </div>
 
       {message && (
@@ -202,5 +208,9 @@ function ProductManager() {
     </div>
   );
 }
+
+ProductManager.propTypes = {
+  network: PropTypes.oneOf(['devnet', 'validator'])
+};
 
 export default ProductManager;
